@@ -1,11 +1,11 @@
 {
-  "1": {
+  "1.1": {
     "noten": {
       "o": ["noten/szene1-philharmoniker.pdf"],
       "c": [],
       "s": []
     },
-    "audio": ["audio/szene1-ouverture.mp3"]
+    "audio": ["audio/1.1 Marsch - 1.1 Marsch.mp3"]
   },
   "3": {
     "noten": {
