@@ -7,6 +7,16 @@
     },
     "audio": ["audio/1_1_Marsch.mp3"]
   },
+  "1.1": {
+    "noten": {
+      "o": ["noten/szene1-philharmoniker.pdf"],
+      "c": [],
+      "s": []
+    },
+    "audio": ["audio/1_1_Marsch.mp3"]
+  },
+
+  
   "3": {
     "noten": {
       "o": ["noten/szene3-orchester.pdf"],
@@ -15,9 +25,9 @@
     },
     "audio": []
   },
-  "9": {
+  "14": {
     "noten": {
-      "o": ["noten/szene9-orchester.pdf"],
+      "o": ["noten/Choral _14_Finale.pdf"],
       "c": ["noten/szene9-chor.pdf"],
       "s": []
     },
