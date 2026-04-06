@@ -1,41 +1,41 @@
 Szene;Name;Vergangeheit;Gegenwart;Schauspiel;CrossOverChor;Salto Vocale;Querbeats;Thadden Harmonists;Gegenklang;Concertino;Concerto;Thadden-Blech;Tanz
-1;SchulerÃ¶ffnung;x;;;;;;;;;;;
-1.1;Marsch;x;;;;;;;;;;x;
-1.2;Rede BÃ¼rgermeister;x;;x;;;;;;;;;
-1.3;Nun will der Lenz uns GrÃ¼ÃŸen;x;;;;;x;;;;;;
-1.4;Rede Elisabeth;;;x;;;;;;;;;
-2;Ãœbergang: Lauf der Jahrzenten;x;x;;;;;;x;;;;
-2.1;Geh aus mein Herz;x;x;;x;x;x;;;x;x;x;
-3;Elisabeth von Thadden â€“ eine Heldin;;x;;;;;;;;;;
-3.1;Referat 1;;;x;;;;;;;;;
-3.2;Referat Komentieren 1;;;;x;;;;;x;x;x;
-3.3;Referat 2;;;x;;;;;;;;;
-3.4;Referat Komentieren 2;;;;x;;;;;x;x;x;
-4;HitlergruÃŸvermeidung;;;;;;;;;;;;
-4.1;Irgendwo auf der Welt;x;;;;;;x;;;;;x
-4.2;Schulinspektion ;x;;x;;;;;;;;;
-5;GemeinschaftÂ heute;;x;;;;;;;;;;
+1;Schuleröffnung;x;;;;;;;;;;;
+01. Jan;Marsch;x;;;;;;;;;;x;
+01. Feb;Rede Bürgermeister;x;;x;;;;;;;;;
+01. Mrz;Nun will der Lenz uns Grüßen;x;;;;;x;;;;;;
+01. Apr;Rede Elisabeth;;;x;;;;;;;;;
+2;Übergang: Lauf der Jahrzenten;x;x;;;;;;x;;;;
+02. Jan;Geh aus mein Herz;x;x;;x;x;x;;;x;x;x;
+3;Elisabeth von Thadden – eine Heldin;;x;;;;;;;;;;
+03. Jan;Referat 1;;;x;;;;;;;;;
+03. Feb;Referat Komentieren 1;;;;x;;;;;x;x;x;
+03. Mrz;Referat 2;;;x;;;;;;;;;
+03. Apr;Referat Komentieren 2;;;;x;;;;;x;x;x;
+4;Hitlergrußvermeidung;;;;;;;;;;;;
+04. Jan;Irgendwo auf der Welt;x;;;;;;x;;;;;x
+04. Feb;Schulinspektion ;x;;x;;;;;;;;;
+5;Gemeinschaft heute;;x;;;;;;;;;;
 6;Gemeinschaft damals;x;;;;;;;;;;;
 7;Am Rand der Gemeinschaft;x;;;;;;;;;;;
-7.1;An der Schule versteckt;x;;x;;;;;;;;;
-7.2;Gesungener innerer Monolog;x;;x;;;;;;;;;
+07. Jan;An der Schule versteckt;x;;x;;;;;;;;;
+07. Feb;Gesungener innerer Monolog;x;;x;;;;;;;;;
 Pause;;;;;;;;;;x;x;x;
 8;Schulball;;x;;;;;;;;;;
-8.1;2nd Walz;;x;x;;;;;;;x;;x
-8.2;Mambo;;x;x;;x;;;x;;x;;x
-8.3;Tanzparty;;x;x;;;;;x;;;;x
-8.4;Eskalation;;x;x;;x;;;x;;x;;x
-9;Innerer Konflikt der â€modernen Elisabethâ€œÂ ;;x;x;;;x;;;x;x;x;
+08. Jan;2nd Walz;;x;x;;;;;;;x;;x
+08. Feb;Mambo;;x;x;;x;;;x;;x;;x
+08. Mrz;Tanzparty;;x;x;;;;;x;;;;x
+08. Apr;Eskalation;;x;x;;x;;;x;;x;;x
+9;Innerer Konflikt der „modernen Elisabeth“ ;;x;x;;;x;;;x;x;x;
 10;Zerbrechende und tragende Beziehungen;;x;x;;;;;;;;;
 11;Verrat;x;;x;;;;;;;;;
-12;Einfluss von auÃŸen;;x;;;;;;;;;;
-12.1;Politische Akteure ;;x;;;;;;;;;;
-12.2;HaÃŸ overload;;x;;x;x;x;;x;x;x;x;
+12;Einfluss von außen;;x;;;;;;;;;;
+12. Jan;Politische Akteure ;;x;;;;;;;;;;
+12. Feb;Haß overload;;x;;x;x;x;;x;x;x;x;
 13;Multible Enden;x;x;;;;;;;;;;
 13a-1;Ermordung Elisabeth v. Thadden;x;;x;;;;;;;;;
-13a-2;Oh Haupt voll Blut und Wunden;x;;x;;;;;;;;;
+13a-2;Oh Haupt voll Blut und Wunden;x;;;x;x;x;;;;;;
 13b-1;Dystopie ;;x;x;;;;;;;;;
 13b-2;Marsch;;x;x;;;;;;x;x;x;
 13c;Ringen um die Mitte;;x;x;;;;;;;;;
-13d;MÃ¶gliches Happy End;;x;x;;;;;;;;;
+13d;Mögliches Happy End;;x;x;;;;;;;;;
 14;Finale;;;;x;x;x;;;x;x;x;x
