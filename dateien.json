@@ -1,0 +1,26 @@
+{
+  "1": {
+    "noten": {
+      "o": ["noten/szene1-philharmoniker.pdf"],
+      "c": [],
+      "s": []
+    },
+    "audio": ["audio/szene1-ouverture.mp3"]
+  },
+  "3": {
+    "noten": {
+      "o": ["noten/szene3-orchester.pdf"],
+      "c": ["noten/szene3-chor-a.pdf"],
+      "s": []
+    },
+    "audio": []
+  },
+  "9": {
+    "noten": {
+      "o": ["noten/szene9-orchester.pdf"],
+      "c": ["noten/szene9-chor.pdf"],
+      "s": []
+    },
+    "audio": ["audio/szene9-finale.mp3"]
+  }
+}

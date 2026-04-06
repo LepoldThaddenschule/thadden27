@@ -1,0 +1,31 @@
+Akt;Szene;Name;Vergangenheit;Gegenwart;Philharmoniker;Kammerorchester;Chor A;Chor B;Ballett;Schauspiel;Tänzer Solo
+Prolog;1;Ouvertüre;X;;X;;;;;;
+Prolog;1a;Streicher-Intro;X;;X;;;;;;
+Prolog;1b;Blechbläser-Fanfare;X;;;X;;;;;
+Prolog;2;Einleitung Sprecher;;X;;;;;X;;
+Akt I;3;Ballsaal der Gräfin;X;;X;;X;;;X;
+Akt I;3.1;Einzug der Gäste;X;;X;;X;;;;
+Akt I;3.2;Erster Tanz;X;;X;;;;X;;X
+Akt I;4;Ankunft des Fremden;X;;;;;;X;;
+Akt I;5;Erstes Gespräch;;X;;;;;X;;
+Akt I;P;Pause;;X;;;;;;;
+Akt II;6;Marktplatz;;X;X;;X;X;;;
+Akt II;6.1;Händler rufen;;X;X;;X;;;;
+Akt II;6.2;Streit bricht aus;;X;X;;;X;;;
+Akt II;7;Traumsequenz;X;;;;X;;;X;X
+Akt II;8;Konfrontation;;X;;;;;X;;
+Akt III;9;Finale Chor;X;;X;;X;X;;;
+Akt III;9.1;Sopran-Solo;X;;;;X;;;;
+Akt III;9.2;Tutti;X;;X;;X;X;;;
+Akt III;10;Epilog;;X;;;;;X;;
+Akt IV;13;Großes Finale;X;;X;X;X;X;X;X;X
+Akt IV;13a;Einleitung Finale;X;;X;X;;;;;
+Akt IV;13a-1;Streicher setzen ein;X;;X;;;;;;
+Akt IV;13a-2;Chor tritt auf;X;;;;;X;X;;
+Akt IV;13b;Tanz der Jahreszeiten;X;;;;;;X;;X
+Akt IV;13b-1;Frühling;X;;;;;;X;;X
+Akt IV;13b-2;Winter;X;;;;X;;;;;X
+Akt IV;13c;Rede des Grafen;X;;;;;;;X;;
+Akt IV;13c-1;Monolog I;X;;;;;;;X;;
+Akt IV;13c-2;Monolog II;X;;;;;;;X;;
+Akt IV;13d;Schluss-Tutti;X;;X;X;X;X;X;X;X
