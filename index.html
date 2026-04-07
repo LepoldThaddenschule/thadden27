@@ -259,20 +259,21 @@ body {
 }
 
 /* ── PAUSE ───────────────────────────────────────────────── */
-.pause-block { display: flex; align-items: center; margin: 22px 0; }
-.pause-line { flex: 1; height: 1.5px; background: var(--brd-dk); }
+.pause-block { display: flex; align-items: center; margin: 26px 0; }
+.pause-line { flex: 1; height: 2px; background: #b8943a; opacity: 0.5; }
 .pause-inner {
   display: flex; flex-direction: column; align-items: center;
-  padding: 12px 28px; border: 2px solid var(--brd-dk); border-radius: 7px;
-  background: var(--sur2); margin: 0 18px; min-width: 140px;
+  padding: 13px 36px; border: 2px solid #b8943a; border-radius: 8px;
+  background: #fdf8ec; margin: 0 18px; min-width: 160px;
+  box-shadow: 0 2px 12px rgba(184,148,58,0.15);
 }
 .pause-badge {
   font-size: 8.5px; font-weight: 700; letter-spacing: 0.28em;
-  text-transform: uppercase; color: var(--tx-dim); margin-bottom: 3px;
+  text-transform: uppercase; color: #b8943a; margin-bottom: 4px;
 }
 .pause-name {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 19px; font-style: italic; color: var(--tx-mt);
+  font-size: 20px; font-style: italic; font-weight: 600; color: #7a5c10;
 }
 .pause-block.greyed { opacity: 0.22; }
 
@@ -685,14 +686,15 @@ function buildTree(flat) {
   for (var i=0; i<flat.length; i++) {
     var s=flat[i]; s.sub=s.sub||[];
     // Pause immer als Hauptszene – egal ob Nummer fehlt
-    var l = isPauseStr(s.name) ? 0 : lvl(s.id);
+    var l = (isPauseStr(s.name)||isPauseStr(s.id)) ? 0 : lvl(s.id);
     if(l===0){roots.push(s);lr=s;ll1=null;}
     else if(l===1){if(lr)lr.sub.push(s);else roots.push(s);ll1=s;}
     else{if(ll1)ll1.sub.push(s);else if(lr)lr.sub.push(s);else roots.push(s);}
   }
   return roots;
 }
-function isPauseStr(name){ return name.toLowerCase().indexOf('pause')>=0; }
+function isPauseStr(name){ return (name||'').toLowerCase().indexOf('pause')>=0; }
+function isPause(sc){ return isPauseStr(sc.name)||isPauseStr(sc.id); }
 function parseCSV(raw) {
   if (raw.charCodeAt(0)===0xFEFF) raw=raw.slice(1);
   var rows = raw.split(/\r?\n/).map(splitLine).filter(function(r){return r.some(function(c){return c;});});
@@ -800,7 +802,7 @@ function mkPause(sc){
   var w=document.createElement('div');w.className='pause-block';
   if(!matchSc(sc)&&!allSel())w.classList.add('greyed');
   if(!zMatch(sc))w.classList.add('greyed');
-  w.innerHTML='<div class="pause-line"></div><div class="pause-inner"><div class="pause-badge">&mdash; Pause &mdash;</div><div class="pause-name">'+esc(sc.name)+'</div></div><div class="pause-line"></div>';
+  var pname=sc.name||sc.id||'Pause';w.innerHTML='<div class="pause-line"></div><div class="pause-inner"><div class="pause-badge">&mdash; Pause &mdash;</div><div class="pause-name">'+esc(pname)+'</div></div><div class="pause-line"></div>';
   return w;
 }
 
