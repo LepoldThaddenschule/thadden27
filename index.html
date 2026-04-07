@@ -54,16 +54,17 @@ body {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  height: 54px;
+  height: 60px;
 }
 .brand {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 21px;
+  font-size: 26px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.05em;
-  margin-right: 4px;
+  margin-right: 2px;
   white-space: nowrap;
+  line-height: 1;
 }
 .brand-sub {
   font-size: 9px;
@@ -72,6 +73,8 @@ body {
   text-transform: uppercase;
   color: rgba(255,255,255,0.5);
   white-space: nowrap;
+  align-self: flex-end;
+  padding-bottom: 3px;
 }
 .tb {
   background: rgba(255,255,255,0.12);
@@ -393,9 +396,9 @@ body {
 .file-row a { font-size: 11px; color: var(--acc); text-decoration: none; font-weight: 500; flex-shrink: 0; }
 .file-row a:hover { text-decoration: underline; }
 .audio-item { border: 1px solid var(--brd); border-radius: 6px; background: var(--sur2); padding: 8px 10px; }
-.audio-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.audio-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
 .audio-nm { font-size: 11.5px; font-weight: 500; color: var(--tx-mid); flex: 1; }
-audio { width: 100%; height: 32px; border-radius: 4px; }
+audio { width: 100%; height: 36px; border-radius: 4px; display: block; }
 
 /* ── MOBILE OVERLAY ──────────────────────────────────────── */
 #mob-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 29; }
@@ -472,10 +475,9 @@ audio { width: 100%; height: 32px; border-radius: 4px; }
 <!-- BODY -->
 <div id="body-wrap">
   <div id="sidebar">
-    <div id="brand-block-sb" style="padding:16px 20px 12px;background:var(--acc);flex-shrink:0;position:relative;">
+    <div id="brand-block-sb" style="padding:12px 16px 10px;background:var(--acc);flex-shrink:0;position:relative;display:flex;align-items:center;gap:10px;">
       <button id="mob-close-btn" onclick="closeSB()">✕</button>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:.05em;">Thadden27</div>
-      <div style="font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:3px;">Besetzungsübersicht</div>
+      <div style="font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55);">Filter</div>
     </div>
 
     <div id="zeit-block">
@@ -682,13 +684,15 @@ function buildTree(flat) {
   var roots=[], lr=null, ll1=null;
   for (var i=0; i<flat.length; i++) {
     var s=flat[i]; s.sub=s.sub||[];
-    var l=lvl(s.id);
+    // Pause immer als Hauptszene – egal ob Nummer fehlt
+    var l = isPauseStr(s.name) ? 0 : lvl(s.id);
     if(l===0){roots.push(s);lr=s;ll1=null;}
     else if(l===1){if(lr)lr.sub.push(s);else roots.push(s);ll1=s;}
     else{if(ll1)ll1.sub.push(s);else if(lr)lr.sub.push(s);else roots.push(s);}
   }
   return roots;
 }
+function isPauseStr(name){ return name.toLowerCase().indexOf('pause')>=0; }
 function parseCSV(raw) {
   if (raw.charCodeAt(0)===0xFEFF) raw=raw.slice(1);
   var rows = raw.split(/\r?\n/).map(splitLine).filter(function(r){return r.some(function(c){return c;});});
@@ -751,7 +755,7 @@ function gatherE(sc){var a=sc.ensembles.slice();if(sc.sub)for(var i=0;i<sc.sub.l
 function matchSc(sc){if(allSel())return true;var a=gatherE(sc);for(var i=0;i<S.sel.length;i++)if(a.indexOf(S.sel[i])>=0)return true;return false;}
 function matchDr(list){if(allSel())return true;for(var i=0;i<S.sel.length;i++)if(list.indexOf(S.sel[i])>=0)return true;return false;}
 function zMatch(sc){return S.zf==='alle'||sc.zeit===S.zf||sc.zeit==='alle';}
-function isPause(sc){return sc.name.toLowerCase().indexOf('pause')>=0;}
+function isPause(sc){return isPauseStr(sc.name);}
 
 // ════════════════════════════════════════════════════════
 // RENDER
@@ -959,13 +963,36 @@ function mkAudioCard(sid){
 function rAudio(cont,sid){
   cont.innerHTML='';
   var audio=getFiles(sid).audio;
-  if(!audio.length){var em=document.createElement('div');em.style.cssText='font-size:12px;color:var(--tx-dim);padding:8px 0;';em.textContent='Keine Audiodateien. \xdcber dateien.json verknüpfen.';cont.appendChild(em);return;}
+  if(!audio.length){
+    var em=document.createElement('div');
+    em.style.cssText='font-size:12px;color:var(--tx-dim);padding:8px 0;';
+    em.textContent='Keine Audiodateien. Über dateien.json verknüpfen.';
+    cont.appendChild(em);return;
+  }
   for(var i=0;i<audio.length;i++){
-    var m=audio[i];var item=document.createElement('div');item.className='audio-item';
+    var m=audio[i];
+    var item=document.createElement('div');item.className='audio-item';
+
+    // Name + Download-Link Zeile
     var top=document.createElement('div');top.className='audio-top';
     var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);
+    var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';
+    dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;flex-shrink:0;margin-left:8px;';
+    dl.textContent='↓ Download';top.appendChild(dl);
     item.appendChild(top);
-    var pl=document.createElement('audio');pl.controls=true;pl.src=m.url;pl.preload='metadata';item.appendChild(pl);
+
+    // Audio-Player mit korrektem MIME-Typ
+    var pl=document.createElement('audio');
+    pl.controls=true;pl.preload='none';
+    var ext=(m.url.split('?')[0].split('.').pop()||'mp3').toLowerCase();
+    var mimes={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','m4a':'audio/mp4','aac':'audio/aac'};
+    pl.setAttribute('src',m.url);
+    pl.setAttribute('type',mimes[ext]||'audio/mpeg');
+    // Fallback innerhalb <audio>
+    var fb=document.createTextNode('');
+    pl.appendChild(fb);
+    item.appendChild(pl);
+
     cont.appendChild(item);
   }
 }
