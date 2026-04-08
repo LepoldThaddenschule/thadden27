@@ -18,8 +18,8 @@ Szene;Name;Damals;Heute;Schauspiel;CrossOverChor;Salto Vocale;Querbeats;Thadden 
 6; Gemeinschaft: Damals;;;;;;;;;;;;
 7;Am Rand der Gemeinschaft;x;;;;;;;;;;;
 7.1;An der Schule versteckt;x;;x;;;;;;;;;
-7.2;Gesungener innerer Monolog;x;;x;;;;;;;;;
-Pause;;;;;;;;;;x;x;x;
+7.2;Gesungener innerer Monolog;x;;x;;;;;;x;x;x;
+Pause;;;;;;;;;;;;;
 8;Schulball;;x;;;;;;;;;;
 8.1;2nd Walz;;x;x;;;;;;;x;;x
 8.2;Mambo;;x;x;;x;;;x;;x;;x
