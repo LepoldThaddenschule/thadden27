@@ -1,9 +1,7 @@
 {
   "1": {
     "noten": {
-      "o": [
-        "noten/szene1-philharmoniker.pdf"
-      ],
+      "o": [],
       "c": [],
       "s": []
     },
@@ -52,14 +50,14 @@
   "1.3": {
     "noten": {
       "o": [
-        "noten/1.3-o/1.3 Nun will der Lenz uns grÃÂ¼ÃÂen - FlÃÂ¶te 1.pdf",
-        "noten/1.3-o/1.3 Nun will der Lenz uns grÃ¼Ãen - FlÃ¶te 1.pdf"
+        "noten/1.3-o/1.3 Nun will der Lenz uns grÃÂÃÂ¼ÃÂÃÂen - FlÃÂÃÂ¶te 1.pdf",
+        "noten/1.3-o/1.3 Nun will der Lenz uns grÃÂ¼ÃÂen - FlÃÂ¶te 1.pdf"
       ],
       "c": [],
       "s": []
     },
     "audio": [
-      "audio/1.3/1.3 Nun will der Lenz uns grüßen - 1.3 Nun will der Lenz uns Grüßen.mp3"
+      "audio/1.3/1.3 Nun will der Lenz uns grÃ¼Ãen - 1.3 Nun will der Lenz uns GrÃ¼Ãen.mp3"
     ]
   }
 }
