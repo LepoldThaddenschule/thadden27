@@ -234,6 +234,11 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
       </div>
       <div id="ens-list"><div style="padding:16px 18px;font-size:12px;color:var(--tx-dim);line-height:1.7;">Wird geladen&hellip;</div></div>
     </div>
+    <div style="padding:10px 14px;border-top:1px solid var(--brd);flex-shrink:0;">
+      <button onclick="resetGhToken()" style="width:100%;background:none;border:1px solid var(--brd);border-radius:4px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--tx-dim);cursor:pointer;text-align:center;">
+        &#128273; GitHub Token zur&uuml;cksetzen
+      </button>
+    </div>
   </div>
   <div id="main">
     <div id="vlist"><div id="lcontent"><div id="sroot"></div></div></div>
@@ -243,9 +248,135 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 <script>
 
 var CSV_FILE='besetzung.csv';
-var UPLOAD_PIN='thadden27';
-var _unlocked=false;
-function checkAuth(){if(_unlocked)return true;var p=prompt('Upload-Passwort eingeben:');if(p===UPLOAD_PIN){_unlocked=true;return true;}if(p!==null)alert('Falsches Passwort.');return false;}
+// ═══════════════════════════════════════════════════════════════
+// GITHUB KONFIGURATION
+// Trage hier deine GitHub-Daten ein:
+// ═══════════════════════════════════════════════════════════════
+var GH_OWNER  = 'DEIN-GITHUB-NAME';    // z.B. 'maxmustermann'
+var GH_REPO   = 'thadden27';           // dein Repository-Name
+var GH_BRANCH = 'main';                // normalerweise 'main'
+var UPLOAD_PIN = 'thadden27';          // Passwort fuer den Upload
+// ═══════════════════════════════════════════════════════════════
+
+var _unlocked = false;
+var _ghToken  = null;   // wird aus localStorage geladen
+
+function checkAuth() {
+  if (_unlocked && _ghToken) return true;
+  // 1. Upload-Passwort pruefen
+  if (!_unlocked) {
+    var p = prompt('Upload-Passwort:');
+    if (p !== UPLOAD_PIN) {
+      if (p !== null) alert('Falsches Passwort.');
+      return false;
+    }
+    _unlocked = true;
+  }
+  // 2. GitHub Token aus localStorage oder neu eingeben
+  if (!_ghToken) {
+    _ghToken = localStorage.getItem('gh_token') || null;
+  }
+  if (!_ghToken) {
+    var tok = prompt(
+      'GitHub Personal Access Token eingeben:\n\n' +
+      'Token erstellen: github.com \u2192 Settings \u2192 Developer settings \u2192\n' +
+      'Personal access tokens \u2192 Tokens (classic) \u2192 Generate new token\n' +
+      'Berechtigungen: "repo" auswaehlen\n\n' +
+      'Das Token wird nur in deinem Browser gespeichert.'
+    );
+    if (!tok || !tok.trim()) {
+      alert('Kein Token eingegeben. Upload nicht moeglich.');
+      return false;
+    }
+    _ghToken = tok.trim();
+    localStorage.setItem('gh_token', _ghToken);
+  }
+  return true;
+}
+
+// GitHub API: Datei hochladen (erstellt oder ersetzt)
+function ghUpload(path, fileObj, onDone, onErr) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    // ArrayBuffer -> base64
+    var bytes = new Uint8Array(e.target.result);
+    var binary = '';
+    for (var i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    var b64 = btoa(binary);
+
+    // Pruefen ob Datei schon existiert (um SHA zu holen)
+    var apiUrl = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + encodeURIComponent(path).replace(/%2F/g, '/');
+    fetch(apiUrl, {headers: {'Authorization': 'token ' + _ghToken, 'Accept': 'application/vnd.github.v3+json'}})
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(existing) {
+        var body = {
+          message: 'Upload: ' + path,
+          content: b64,
+          branch: GH_BRANCH
+        };
+        if (existing && existing.sha) body.sha = existing.sha;
+        return fetch(apiUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'token ' + _ghToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+      })
+      .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.message || r.status); });
+        return r.json();
+      })
+      .then(function(data) {
+        var url = 'https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/' + GH_BRANCH + '/' + path;
+        onDone(url);
+      })
+      .catch(function(err) {
+        // Token koennte falsch sein - loeschen und neu fragen
+        if (err.message && (err.message.indexOf('401') >= 0 || err.message.indexOf('Bad credentials') >= 0)) {
+          localStorage.removeItem('gh_token');
+          _ghToken = null;
+          alert('GitHub Token ungueltig. Bitte beim naechsten Upload neu eingeben.');
+        }
+        onErr(err.message || 'Unbekannter Fehler');
+      });
+  };
+  reader.readAsArrayBuffer(fileObj);
+}
+
+// dateien.json nach Upload aktualisieren
+function ghUpdateManifest(sid, type, cat, filePath) {
+  var mPath = 'dateien.json';
+  var mUrl  = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + mPath;
+  fetch(mUrl, {headers:{'Authorization':'token '+_ghToken,'Accept':'application/vnd.github.v3+json'}})
+    .then(function(r){ return r.ok ? r.json() : {content:'e30=', sha:null}; })
+    .then(function(existing) {
+      var raw = atob(existing.content.replace(/\n/g,''));
+      var manifest = {};
+      try { manifest = JSON.parse(raw); } catch(e) {}
+      if (!manifest[sid]) manifest[sid] = {noten:{o:[],c:[],s:[]},audio:[]};
+      var relPath = filePath;
+      if (type === 'pdf') {
+        if (!manifest[sid].noten) manifest[sid].noten = {o:[],c:[],s:[]};
+        if (!manifest[sid].noten[cat]) manifest[sid].noten[cat] = [];
+        if (manifest[sid].noten[cat].indexOf(relPath) < 0) manifest[sid].noten[cat].push(relPath);
+      } else {
+        if (!manifest[sid].audio) manifest[sid].audio = [];
+        if (manifest[sid].audio.indexOf(relPath) < 0) manifest[sid].audio.push(relPath);
+      }
+      var newContent = btoa(unescape(encodeURIComponent(JSON.stringify(manifest, null, 2))));
+      var body = {message: 'Update dateien.json', content: newContent, branch: GH_BRANCH};
+      if (existing.sha) body.sha = existing.sha;
+      return fetch(mUrl, {
+        method:'PUT',
+        headers:{'Authorization':'token '+_ghToken,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+    })
+    .catch(function(e){ console.warn('dateien.json update failed:', e); });
+}
 var PAL=[{bg:'#dce8f5',bd:'#4a7fb5',tx:'#0f3460'},{bg:'#daf0e4',bd:'#4aab73',tx:'#0f4a2a'},{bg:'#f5dce8',bd:'#b54a7f',tx:'#60113a'},{bg:'#f5f0dc',bd:'#b5934a',tx:'#60430f'},{bg:'#ecdcf5',bd:'#8f4ab5',tx:'#3d1160'},{bg:'#f5e4dc',bd:'#b5694a',tx:'#602610'},{bg:'#dcf5f5',bd:'#4ab5b5',tx:'#0f4a4a'},{bg:'#f0f5dc',bd:'#95b54a',tx:'#3a4a10'},{bg:'#f5dcf5',bd:'#b54ab5',tx:'#5a1160'},{bg:'#dcf5ec',bd:'#4ab58f',tx:'#0f4a35'},{bg:'#f0dcf5',bd:'#9f4ab5',tx:'#44116a'},{bg:'#f5dcdc',bd:'#b54a4a',tx:'#601111'},{bg:'#dce8f0',bd:'#4a8fb5',tx:'#0f3d5a'},{bg:'#f5f5dc',bd:'#aaaa4a',tx:'#484810'},{bg:'#dce4dc',bd:'#6a8f6a',tx:'#1f4a1f'}];
 var S={ensembles:[],tree:[],colorMap:{},leitungen:[],sel:[],zf:'alle',lf:null,files:{}};
 function gf(sid){if(!S.files[sid])S.files[sid]={noten:{o:[],c:[],s:[]},audio:[]};return S.files[sid];}
@@ -283,11 +414,50 @@ function findSc(id,nodes){for(var i=0;i<nodes.length;i++){if(nodes[i].id===id)re
 function showDetail(id){var sc=findSc(id,S.tree);if(!sc)return;document.getElementById('vlist').style.display='none';document.getElementById('vdetail').style.display='flex';document.getElementById('btn-col').style.display='none';document.getElementById('btn-exp').style.display='none';var dc=document.getElementById('dcontent');dc.innerHTML='';var back=document.createElement('button');back.className='back-btn';back.textContent='\u2190 Zur\xfcck';back.onclick=showList;dc.appendChild(back);var dh=document.createElement('div');dh.className='dheader';var dn=document.createElement('div');dn.className='dnum';dn.textContent='Szene '+sc.id;dh.appendChild(dn);var dt=document.createElement('div');dt.className='dtitle';dt.textContent=sc.name;dh.appendChild(dt);var dmeta=document.createElement('div');dmeta.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;';if(sc.zeit&&sc.zeit!=='alle'){var pp=document.createElement('span');pp.className='zpill '+sc.zeit;pp.textContent=sc.zeit==='vergangenheit'?'Vergangenheit':'Gegenwart';dmeta.appendChild(pp);}if(sc.leitung){var dl=document.createElement('span');dl.className='leit-detail';dl.innerHTML='\u266a <strong>Mus. Leitung:</strong>\u00a0'+esc(sc.leitung);dmeta.appendChild(dl);}if(dmeta.children.length)dh.appendChild(dmeta);dc.appendChild(dh);if(sc.sub&&sc.sub.length){var sh=document.createElement('div');sh.className='sec-h';sh.textContent='Unterszenen';dc.appendChild(sh);for(var i=0;i<sc.sub.length;i++){var sub=sc.sub[i];var item=document.createElement('div');item.className='dsub';item.onclick=(function(id){return function(){showDetail(id);};})(sub.id);var sn=document.createElement('span');sn.className='dsub-num';sn.textContent=sub.id;item.appendChild(sn);var snm=document.createElement('span');snm.className='dsub-name';snm.textContent=sub.name;item.appendChild(snm);if(sub.leitung){var lt4=document.createElement('span');lt4.className='leit-tag';lt4.style.marginLeft='4px';lt4.textContent='\u266a\u00a0'+sub.leitung;item.appendChild(lt4);}var sarr=document.createElement('span');sarr.style.color='var(--tx-dim)';sarr.textContent=' \u203a';item.appendChild(sarr);dc.appendChild(item);}}if(sc.ensembles.length){var sh2=document.createElement('div');sh2.className='sec-h';sh2.textContent='Beteiligte Ensembles';dc.appendChild(sh2);var tg=document.createElement('div');tg.className='etags';tg.style.marginBottom='6px';mkTags(tg,sc.ensembles);dc.appendChild(tg);}var sh3=document.createElement('div');sh3.className='sec-h';sh3.textContent='Noten (PDF)';dc.appendChild(sh3);dc.appendChild(mkNotenCard(sc.id));var sh4=document.createElement('div');sh4.className='sec-h';sh4.textContent='Audio';dc.appendChild(sh4);dc.appendChild(mkAudioCard(sc.id));}
 function showList(){document.getElementById('vlist').style.display='';document.getElementById('vdetail').style.display='none';if(S.tree.length){document.getElementById('btn-col').style.display='';document.getElementById('btn-exp').style.display='';}}
 function mkDZ(type,sid,k,listEl){var dz=document.createElement('div');dz.className='drop-zone';var inp=document.createElement('input');inp.type='file';inp.multiple=true;inp.accept=type==='pdf'?'.pdf,application/pdf':'.mp3,.m4a,.ogg,.wav,audio/*';inp.style.display='none';dz.appendChild(inp);var inner=document.createElement('div');inner.className='dz-inner';var iconEl=document.createElement('span');iconEl.className='dz-icon';iconEl.textContent=type==='pdf'?'\uD83D\uDCC4':'\uD83C\uDFB5';var textEl=document.createElement('span');textEl.className='dz-text';textEl.appendChild(document.createTextNode(type==='pdf'?'PDF hierher ziehen':'MP3 hierher ziehen'));textEl.appendChild(document.createElement('br'));var subEl=document.createElement('span');subEl.className='dz-sub';subEl.textContent='Passwort erforderlich \u00b7 klicken oder ziehen';textEl.appendChild(subEl);inner.appendChild(iconEl);inner.appendChild(textEl);dz.appendChild(inner);dz.onclick=function(e){if(e.target===inp)return;if(!checkAuth())return;inp.click();};inp.onchange=function(e){hFiles(e.target.files,type,sid,k,listEl);e.target.value='';};dz.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();dz.classList.add('dz-over');});dz.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();dz.classList.remove('dz-over');});dz.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();dz.classList.remove('dz-over');if(!checkAuth())return;hFiles(e.dataTransfer.files,type,sid,k,listEl);});return dz;}
-function hFiles(files,type,sid,k,listEl){if(!files||!files.length)return;for(var i=0;i<files.length;i++){var f=files[i];var url=URL.createObjectURL(f);if(type==='pdf')gf(sid).noten[k].push({name:f.name,url:url,local:true});else gf(sid).audio.push({name:f.name,url:url,local:true});}if(type==='pdf')rPdfs(listEl,sid,k);else rAudio(listEl,sid);}
+function hFiles(files,type,sid,k,listEl){
+  if(!files||!files.length)return;
+  for(var i=0;i<files.length;i++){
+    (function(f){
+      // Folder: noten/szene-ID-kat/ or audio/szene-ID/
+      var folder = type==='pdf'
+        ? 'noten/'+sid+'-'+k+'/'
+        : 'audio/'+sid+'/';
+      var ghPath = folder + f.name;
+
+      // Optimistisch anzeigen (temporaere URL)
+      var tempUrl = URL.createObjectURL(f);
+      var entry = {name:f.name, url:tempUrl, local:true, uploading:true};
+      if(type==='pdf') gf(sid).noten[k].push(entry);
+      else             gf(sid).audio.push(entry);
+      if(type==='pdf') rPdfs(listEl,sid,k);
+      else             rAudio(listEl,sid);
+
+      // Hochladen nach GitHub
+      ghUpload(ghPath, f,
+        function(permanentUrl){
+          // URL auf permanente GitHub URL aktualisieren
+          entry.url = permanentUrl;
+          entry.local = false;
+          entry.uploading = false;
+          ghUpdateManifest(sid, type, k, ghPath);
+          if(type==='pdf') rPdfs(listEl,sid,k);
+          else             rAudio(listEl,sid);
+        },
+        function(errMsg){
+          entry.uploading = false;
+          entry.error = true;
+          alert('Upload fehlgeschlagen: ' + errMsg + '\n\nDatei ist nur bis zum Browser-Neustart verfuegbar.');
+          if(type==='pdf') rPdfs(listEl,sid,k);
+          else             rAudio(listEl,sid);
+        }
+      );
+    })(files[i]);
+  }
+}
 function mkNotenCard(sid){var card=document.createElement('div');card.className='file-card';var tabs=document.createElement('div');tabs.className='ntabs';var bods=document.createElement('div');var cats=[{k:'o',l:'\uD83C\uDFBB Orchester'},{k:'c',l:'\uD83C\uDFA4 Chor'},{k:'s',l:'\uD83D\uDCCB Sonstige'}];cats.forEach(function(cat,idx){var tab=document.createElement('button');tab.className='ntab'+(idx===0?' on':'');tab.textContent=cat.l;tab.onclick=(function(tb,bid){return function(){tabs.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('on');});bods.querySelectorAll('.ntab-body').forEach(function(b){b.classList.remove('on');});tb.classList.add('on');var el=document.getElementById(bid);if(el)el.classList.add('on');};})(tab,'ntb-'+cat.k+'-'+sid);tabs.appendChild(tab);var body=document.createElement('div');body.className='ntab-body'+(idx===0?' on':'');body.id='ntb-'+cat.k+'-'+sid;var list=document.createElement('div');list.className='file-list';body.appendChild(list);rPdfs(list,sid,cat.k);body.appendChild(mkDZ('pdf',sid,cat.k,list));bods.appendChild(body);});card.appendChild(tabs);card.appendChild(bods);return card;}
-function rPdfs(cont,sid,k){cont.innerHTML='';var pdfs=gf(sid).noten[k];if(!pdfs.length){var em=document.createElement('div');em.style.cssText='font-size:12px;color:var(--tx-dim);padding:4px 0;';em.textContent='Noch keine Noten.';cont.appendChild(em);return;}for(var i=0;i<pdfs.length;i++){var p=pdfs[i];var row=document.createElement('div');row.className='file-row';row.innerHTML='<span>\uD83D\uDCC4</span>';var nm=document.createElement('span');nm.className='file-nm';nm.textContent=p.name;row.appendChild(nm);var a=document.createElement('a');a.href=p.url;a.target='_blank';a.textContent='\u2193 \xd6ffnen';row.appendChild(a);if(p.local){var del=document.createElement('button');del.className='file-del';del.textContent='\u00d7';del.onclick=(function(s2,ky,idx2,c2){return function(){gf(s2).noten[ky].splice(idx2,1);rPdfs(c2,s2,ky);};})(sid,k,i,cont);row.appendChild(del);}cont.appendChild(row);}}
+function rPdfs(cont,sid,k){cont.innerHTML='';var pdfs=gf(sid).noten[k];if(!pdfs.length){var em=document.createElement('div');em.style.cssText='font-size:12px;color:var(--tx-dim);padding:4px 0;';em.textContent='Noch keine Noten.';cont.appendChild(em);return;}for(var i=0;i<pdfs.length;i++){var p=pdfs[i];var row=document.createElement('div');row.className='file-row';row.innerHTML='<span>\uD83D\uDCC4</span>';var nm=document.createElement('span');nm.className='file-nm';nm.textContent=p.name;row.appendChild(nm);if(p.uploading){var sp=document.createElement('span');sp.style.cssText='font-size:10.5px;color:#b5934a;flex-shrink:0;';sp.textContent='\u29d7 wird hochgeladen\u2026';row.appendChild(sp);}else if(p.error){var sp=document.createElement('span');sp.style.cssText='font-size:10.5px;color:#b54a4a;flex-shrink:0;';sp.textContent='\u26a0 Fehler';row.appendChild(sp);}else{var a=document.createElement('a');a.href=p.url;a.target='_blank';a.textContent='\u2193 \xd6ffnen';row.appendChild(a);}if(p.local||p.error){var del=document.createElement('button');del.className='file-del';del.textContent='\u00d7';del.onclick=(function(s2,ky,idx2,c2){return function(){gf(s2).noten[ky].splice(idx2,1);rPdfs(c2,s2,ky);};})(sid,k,i,cont);row.appendChild(del);}cont.appendChild(row);}}
 function mkAudioCard(sid){var card=document.createElement('div');card.className='file-card';var head=document.createElement('div');head.className='file-card-head';head.textContent='\uD83C\uDFB5 Audiodateien';card.appendChild(head);var body=document.createElement('div');body.className='file-card-body';var list=document.createElement('div');list.className='file-list';body.appendChild(list);rAudio(list,sid);body.appendChild(mkDZ('audio',sid,null,list));card.appendChild(body);return card;}
-function rAudio(cont,sid){cont.innerHTML='';var audio=gf(sid).audio;if(!audio.length){var em=document.createElement('div');em.style.cssText='font-size:12px;color:var(--tx-dim);padding:4px 0;';em.textContent='Noch keine Audiodateien.';cont.appendChild(em);return;}for(var i=0;i<audio.length;i++){var m=audio[i];var item=document.createElement('div');item.className='audio-item';var top=document.createElement('div');top.className='audio-top';var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;flex-shrink:0;';dl.textContent='\u2193 Download';top.appendChild(dl);if(m.local){var del=document.createElement('button');del.className='file-del';del.textContent='\u00d7';del.onclick=(function(s2,idx2,c2){return function(){gf(s2).audio.splice(idx2,1);rAudio(c2,s2);};})(sid,i,cont);top.appendChild(del);}item.appendChild(top);var pl=document.createElement('audio');pl.controls=true;pl.preload='none';var ext=(m.url.split('?')[0].split('.').pop()||'mp3').toLowerCase();var mimes={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','m4a':'audio/mp4','aac':'audio/aac'};pl.setAttribute('src',m.url);pl.setAttribute('type',mimes[ext]||'audio/mpeg');item.appendChild(pl);cont.appendChild(item);}}
+function rAudio(cont,sid){cont.innerHTML='';var audio=gf(sid).audio;if(!audio.length){var em=document.createElement('div');em.style.cssText='font-size:12px;color:var(--tx-dim);padding:4px 0;';em.textContent='Noch keine Audiodateien.';cont.appendChild(em);return;}for(var i=0;i<audio.length;i++){var m=audio[i];var item=document.createElement('div');item.className='audio-item';var top=document.createElement('div');top.className='audio-top';var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);if(m.uploading){var sp=document.createElement('span');sp.style.cssText='font-size:10.5px;color:#b5934a;flex-shrink:0;';sp.textContent='\u29d7 wird hochgeladen\u2026';top.appendChild(sp);}else if(m.error){var sp=document.createElement('span');sp.style.cssText='font-size:10.5px;color:#b54a4a;flex-shrink:0;';sp.textContent='\u26a0 Fehler';top.appendChild(sp);}else{var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;flex-shrink:0;';dl.textContent='\u2193 Download';top.appendChild(dl);}if(m.local||m.error){var del=document.createElement('button');del.className='file-del';del.textContent='\u00d7';del.onclick=(function(s2,idx2,c2){return function(){gf(s2).audio.splice(idx2,1);rAudio(c2,s2);};})(sid,i,cont);top.appendChild(del);}item.appendChild(top);var pl=document.createElement('audio');pl.controls=true;pl.preload='none';var ext=(m.url.split('?')[0].split('.').pop()||'mp3').toLowerCase();var mimes={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','m4a':'audio/mp4','aac':'audio/aac'};pl.setAttribute('src',m.url);pl.setAttribute('type',mimes[ext]||'audio/mpeg');item.appendChild(pl);cont.appendChild(item);}}
 function collapseAll(c){var bl=document.querySelectorAll('.hb,.ub');for(var i=0;i<bl.length;i++){if(c)bl[i].classList.remove('open');else bl[i].classList.add('open');}}
 function togEns(n){var i=S.sel.indexOf(n);if(i>=0)S.sel.splice(i,1);else S.sel.push(n);render();closeSB();}
 function selAll(){S.sel=[];render();}
@@ -300,6 +470,7 @@ function openSB(){document.getElementById('sidebar').classList.add('open');docum
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-overlay').classList.remove('on');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function loadDemo(){var csv="Akt;Szene;Name;Vergangenheit;Gegenwart;Musikalische Leitung;Philharmoniker;Kammerorchester;Chor A;Chor B;Ballett;Schauspiel;T\xe4nzer Solo\nProlog;1;Ouvert\xfcre;X;;Max Mustermann;X;;;;;;\nProlog;1a;Streicher-Intro;X;;Max Mustermann;X;;;;;;\nProlog;2;Einleitung;;X;;;;;;;;X;;\nAkt I;3;Ballsaal der Gr\xe4fin;X;;Max Mustermann;X;;X;;;X;\nAkt I;3.1;Einzug der G\xe4ste;X;;Max Mustermann;X;;X;;;;\nAkt I;3.2;Erster Tanz;X;;Max Mustermann;X;;;;X;;X\nAkt I;4;Ankunft des Fremden;X;;;;;;;X;;\nAkt I;5;Erstes Gespr\xe4ch;;X;;;;;;;;X;;\nAkt I;Pause;Pause;;X;;;;;;;\nAkt II;6;Marktplatz;;X;;X;;X;X;;;\nAkt II;6.1;H\xe4ndler rufen;;X;;X;;X;;;;\nAkt II;7;Traumsequenz;X;;Maria Muster;;;X;;;X;X\nAkt II;8;Konfrontation;;X;;;;;;;X;;\nAkt III;9;Finale Chor;X;;Max Mustermann;X;;X;X;;;\nAkt III;9.1;Sopran-Solo;X;;Maria Muster;;;X;;;;\nAkt III;10;Epilog;;X;;;;;;;X;;";var res=parseCSV(csv);S.ensembles=res.ensembles;S.tree=res.tree;S.colorMap=res.colorMap;S.leitungen=res.leitungen||[];S.sel=[];S.lf=null;setSt('Demo \u00b7 '+res.ensembles.length+' Ensembles \u00b7 '+res.tree.length+' Szenen',true);render();}
+function resetGhToken(){localStorage.removeItem('gh_token');_ghToken=null;_unlocked=false;alert('GitHub Token gelöscht. Du wirst beim nächsten Upload neu danach gefragt.');}
 startLoad();
 
 </script>
