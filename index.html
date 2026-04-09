@@ -252,7 +252,7 @@ var CSV_FILE='besetzung.csv';
 // GITHUB KONFIGURATION
 // Trage hier deine GitHub-Daten ein:
 // ═══════════════════════════════════════════════════════════════
-var GH_OWNER  = 'LepoldThaddenschule';    // z.B. 'maxmustermann'
+var GH_OWNER  = 'DEIN-GITHUB-NAME';    // z.B. 'maxmustermann'
 var GH_REPO   = 'thadden27';           // dein Repository-Name
 var GH_BRANCH = 'main';                // normalerweise 'main'
 var UPLOAD_PIN = 'thadden27';          // Passwort fuer den Upload
@@ -357,7 +357,9 @@ function ghUpdateManifest(sid, type, cat, filePath) {
       var manifest = {};
       try { manifest = JSON.parse(raw); } catch(e) {}
       if (!manifest[sid]) manifest[sid] = {noten:{o:[],c:[],s:[]},audio:[]};
-      var relPath = filePath;
+      // Als absolute raw.githubusercontent.com URL speichern
+      var relPath = filePath; // relativer Pfad bleibt im JSON
+      // (wird beim Laden zu absoluter URL umgewandelt)
       if (type === 'pdf') {
         if (!manifest[sid].noten) manifest[sid].noten = {o:[],c:[],s:[]};
         if (!manifest[sid].noten[cat]) manifest[sid].noten[cat] = [];
@@ -381,7 +383,61 @@ var PAL=[{bg:'#dce8f5',bd:'#4a7fb5',tx:'#0f3460'},{bg:'#daf0e4',bd:'#4aab73',tx:
 var S={ensembles:[],tree:[],colorMap:{},leitungen:[],sel:[],zf:'alle',lf:null,files:{}};
 function gf(sid){if(!S.files[sid])S.files[sid]={noten:{o:[],c:[],s:[]},audio:[]};return S.files[sid];}
 function startLoad(){showLdr('Lade\u2026');fetch(CSV_FILE).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then(function(buf){var res=parseCSV(dec(buf));S.ensembles=res.ensembles;S.tree=res.tree;S.colorMap=res.colorMap;S.leitungen=res.leitungen||[];S.sel=[];S.lf=null;setSt(res.ensembles.length+' Ensembles \u00b7 '+res.tree.length+' Szenen',true);hideLdr();loadManifest();render();}).catch(function(){hideLdr();setSt('Demo-Daten',false);loadDemo();});}
-function loadManifest(){fetch('dateien.json').then(function(r){if(!r.ok)return null;return r.json();}).then(function(data){if(!data)return;for(var sid in data){var e=data[sid],f=gf(sid);if(e.noten){['o','c','s'].forEach(function(k){if(e.noten[k])e.noten[k].forEach(function(url){var p=url.split('/');f.noten[k].push({name:p[p.length-1],url:url});});});}if(e.audio)e.audio.forEach(function(url){var p=url.split('/');f.audio.push({name:p[p.length-1],url:url});});}}).catch(function(){});}
+function loadManifest(){
+  // Strategie 1: GitHub API (immer aktuell, kein CDN-Cache)
+  // Strategie 2: Fallback mit Cache-Busting
+  function applyManifest(data){
+    if(!data)return;
+    for(var sid in data){
+      var e=data[sid],f=gf(sid);
+      if(e.noten){['o','c','s'].forEach(function(k){
+        if(e.noten[k])e.noten[k].forEach(function(path){
+          var p=path.split('/');
+          // Absolute URL erzeugen damit es unabhaengig vom Cache-Stand funktioniert
+          var absUrl = path.indexOf('http')===0 ? path :
+            'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path;
+          f.noten[k].push({name:p[p.length-1],url:absUrl});
+        });
+      });}
+      if(e.audio)e.audio.forEach(function(path){
+        var p=path.split('/');
+        var absUrl = path.indexOf('http')===0 ? path :
+          'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path;
+        f.audio.push({name:p[p.length-1],url:absUrl});
+      });
+    }
+    render();
+  }
+
+  // Versuche zuerst GitHub API (frisch, kein Cache) wenn Token vorhanden
+  var tok = localStorage.getItem('gh_token');
+  if(tok && GH_OWNER !== 'DEIN-GITHUB-NAME'){
+    var apiUrl='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/dateien.json';
+    fetch(apiUrl,{headers:{'Authorization':'token '+tok,'Accept':'application/vnd.github.v3+json'}})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(d){
+        if(d&&d.content){
+          var raw=atob(d.content.replace(/\n/g,''));
+          try{applyManifest(JSON.parse(raw));}catch(e){}
+        }else{
+          // Fallback: direkter Fetch mit Cache-Busting
+          fetchManifestDirect();
+        }
+      })
+      .catch(fetchManifestDirect);
+  }else{
+    fetchManifestDirect();
+  }
+
+  function fetchManifestDirect(){
+    // Cache-Busting per Timestamp-Parameter
+    var cb='?t='+Date.now();
+    fetch('dateien.json'+cb)
+      .then(function(r){return r.ok?r.json():null;})
+      .then(applyManifest)
+      .catch(function(){});
+  }
+}
 function showLdr(m){document.getElementById('loader-msg').textContent=m;document.getElementById('loader').classList.add('on');}
 function hideLdr(){document.getElementById('loader').classList.remove('on');}
 function setSt(m,ok){var el=document.getElementById('status');el.textContent=m;el.className=ok?'ok':'err';}
@@ -435,13 +491,14 @@ function hFiles(files,type,sid,k,listEl){
       // Hochladen nach GitHub
       ghUpload(ghPath, f,
         function(permanentUrl){
-          // URL auf permanente GitHub URL aktualisieren
+          // URL auf permanente raw.githubusercontent.com URL setzen
           entry.url = permanentUrl;
           entry.local = false;
           entry.uploading = false;
           ghUpdateManifest(sid, type, k, ghPath);
           if(type==='pdf') rPdfs(listEl,sid,k);
           else             rAudio(listEl,sid);
+          setSt('Hochgeladen: ' + f.name, true);
         },
         function(errMsg){
           entry.uploading = false;
