@@ -264,7 +264,7 @@ var _ghToken  = null;   // wird aus localStorage geladen
 function checkAuth() {
   if (_unlocked && _ghToken) return true;
   // GitHub konfiguriert?
-  if (GH_OWNER === 'DEIN-GITHUB-NAME') {
+  if (GH_OWNER === 'LepoldThaddenschule') {
     alert('GitHub ist noch nicht konfiguriert.\n\nBitte in index.html die Zeile\n  var GH_OWNER = \'DEIN-GITHUB-NAME\';\nauf deinen GitHub-Benutzernamen anpassen.');
     return false;
   }
