@@ -252,7 +252,7 @@ var CSV_FILE='besetzung.csv';
 // GITHUB KONFIGURATION
 // Trage hier deine GitHub-Daten ein:
 // ═══════════════════════════════════════════════════════════════
-var GH_OWNER  = 'DEIN-GITHUB-NAME';    // z.B. 'maxmustermann'
+var GH_OWNER  = 'LepoldThaddenschule';    // z.B. 'maxmustermann'
 var GH_REPO   = 'thadden27';           // dein Repository-Name
 var GH_BRANCH = 'main';                // normalerweise 'main'
 var UPLOAD_PIN = 'thadden27';          // Passwort fuer den Upload
@@ -264,7 +264,7 @@ var _ghToken  = null;   // wird aus localStorage geladen
 function checkAuth() {
   if (_unlocked && _ghToken) return true;
   // GitHub konfiguriert?
-  if (GH_OWNER === 'LepoldThaddenschule') {
+  if (GH_OWNER === 'DEIN-GITHUB-NAME') {
     alert('GitHub ist noch nicht konfiguriert.\n\nBitte in index.html die Zeile\n  var GH_OWNER = \'DEIN-GITHUB-NAME\';\nauf deinen GitHub-Benutzernamen anpassen.');
     return false;
   }
