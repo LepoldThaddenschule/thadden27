@@ -1,36 +1,62 @@
 {
   "1": {
     "noten": {
-      "o": ["noten/szene1-philharmoniker.pdf"],
+      "o": [
+        "noten/szene1-philharmoniker.pdf"
+      ],
       "c": [],
       "s": []
     },
-    "audio": ["audio/1_1_Marsch.mp3"]
+    "audio": [
+      "audio/1_1_Marsch.mp3"
+    ]
   },
-  "1.1": {
-    "noten": {
-      "o": ["noten/szene1-philharmoniker.pdf"],
-      "c": [],
-      "s": []
-    },
-    "audio": ["audio/1_1_Marsch.mp3"]
-  },
-
-  
   "3": {
     "noten": {
-      "o": ["noten/szene3-orchester.pdf"],
-      "c": ["noten/szene3-chor-a.pdf"],
+      "o": [
+        "noten/szene3-orchester.pdf"
+      ],
+      "c": [
+        "noten/szene3-chor-a.pdf"
+      ],
       "s": []
     },
     "audio": []
   },
   "14": {
     "noten": {
-      "o": ["noten/Choral _14_Finale.pdf"],
-      "c": ["noten/szene9-chor.pdf"],
+      "o": [
+        "noten/Choral _14_Finale.pdf"
+      ],
+      "c": [
+        "noten/szene9-chor.pdf"
+      ],
       "s": []
     },
-    "audio": ["audio/14 Finale - Vorspiel.mp3"]
+    "audio": [
+      "audio/14 Finale - Vorspiel.mp3"
+    ]
+  },
+  "1.1": {
+    "noten": {
+      "o": [
+        "noten/szene1-philharmoniker.pdf"
+      ],
+      "c": [],
+      "s": []
+    },
+    "audio": [
+      "audio/1_1_Marsch.mp3"
+    ]
+  },
+  "1.3": {
+    "noten": {
+      "o": [
+        "noten/1.3-o/1.3 Nun will der Lenz uns grüßen - Flöte 1.pdf"
+      ],
+      "c": [],
+      "s": []
+    },
+    "audio": []
   }
 }
