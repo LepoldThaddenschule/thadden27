@@ -14,11 +14,11 @@
   },
   "3.4":{
     "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
-    "audio": ["audio/1_3_Nun_will.mp3"]
+    "audio": ["audio/3_4 Referat B.mp3"]
   },
   
   "14": {
     "noten": { "o": ["noten/3-orch.pdf"], "c": ["noten/3-chor.pdf"], "s": [] },
-    "audio": ["audio/3_4 Referat B.mp3"]
+    "audio": ["audio/14 Finale - Vorspiel.mp3"], ["audio/14 Finale - Vorspiel.mp3"]
   }
 }
