@@ -18,7 +18,7 @@
   },
   
   "14": {
-    "noten": { "o": ["noten/3-orch.pdf"], "c": ["noten/3-chor.pdf"], "s": [] },
+    "noten": { "o": ["noten/3-orch.pdf"], "c": ["noten/Choral _14_Finale.pdf"], "s": [] },
     "audio": ["audio/14 Finale - Vorspiel.mp3", "audio/14 Finale - Choral.mp3"]
   }
 }
