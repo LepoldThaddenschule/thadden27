@@ -7,12 +7,17 @@
     "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
     "audio": ["audio/1_3_Nun_will.mp3"]
   },
-  "3": {
-    "noten": { "o": ["noten/3-orch.pdf"], "c": ["noten/3-chor.pdf"], "s": [] },
-    "audio": []
+
+  "3.2":{
+    "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
+    "audio": ["audio/1_3_Nun_will.mp3"]
   },
-  "9": {
-    "noten": { "o": ["noten/9-orch.pdf"], "c": ["noten/9-chor-a.pdf", "noten/9-chor-b.pdf"], "s": [] },
-    "audio": ["audio/9-finale.mp3"]
-  }
-}
+  "3.4":{
+    "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
+    "audio": ["audio/1_3_Nun_will.mp3"]
+  },
+  
+  "14": {
+    "noten": { "o": ["noten/3-orch.pdf"], "c": ["noten/3-chor.pdf"], "s": [] },
+    "audio": [audio/14 Finale - Vorspiel.mp3]
+  },
