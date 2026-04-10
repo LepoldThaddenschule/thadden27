@@ -234,6 +234,7 @@ var GH_BRANCH='main';
 var PAL=[{bg:'#dce8f5',bd:'#4a7fb5',tx:'#0f3460'},{bg:'#daf0e4',bd:'#4aab73',tx:'#0f4a2a'},{bg:'#f5dce8',bd:'#b54a7f',tx:'#60113a'},{bg:'#f5f0dc',bd:'#b5934a',tx:'#60430f'},{bg:'#ecdcf5',bd:'#8f4ab5',tx:'#3d1160'},{bg:'#f5e4dc',bd:'#b5694a',tx:'#602610'},{bg:'#dcf5f5',bd:'#4ab5b5',tx:'#0f4a4a'},{bg:'#f0f5dc',bd:'#95b54a',tx:'#3a4a10'},{bg:'#f5dcf5',bd:'#b54ab5',tx:'#5a1160'},{bg:'#dcf5ec',bd:'#4ab58f',tx:'#0f4a35'},{bg:'#f0dcf5',bd:'#9f4ab5',tx:'#44116a'},{bg:'#f5dcdc',bd:'#b54a4a',tx:'#601111'},{bg:'#dce8f0',bd:'#4a8fb5',tx:'#0f3d5a'},{bg:'#f5f5dc',bd:'#aaaa4a',tx:'#484810'},{bg:'#dce4dc',bd:'#6a8f6a',tx:'#1f4a1f'}];
 
 var S={ensembles:[],tree:[],colorMap:{},leitungen:[],sel:[],zf:'alle',lf:null,files:{}};
+var _currentDetail=null; // ID der aktuell offenen Detailszene
 function gf(sid){if(!S.files[sid])S.files[sid]={noten:{o:[],c:[],s:[]},audio:[]};return S.files[sid];}
 
 function startLoad(){
@@ -261,6 +262,11 @@ function loadManifest(){
       });
     }
     render();
+    // Wenn Detailansicht offen ist: Datei-Sektion neu aufbauen
+    if(_currentDetail){
+      var fs=document.getElementById('files-section-'+_currentDetail);
+      if(fs){var newFs=mkFileSection(_currentDetail);fs.parentNode.replaceChild(newFs,fs);}
+    }
   }
   // GitHub API (cachefrei), Fallback: direkter Fetch mit Cache-Busting
   fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/dateien.json',
@@ -314,6 +320,7 @@ function showDetail(id,noHistory){
   document.getElementById('vdetail').style.display='flex';
   document.getElementById('btn-col').style.display='none';
   document.getElementById('btn-exp').style.display='none';
+  _currentDetail=id;
   var dc=document.getElementById('dcontent');dc.innerHTML='';
   var back=document.createElement('button');back.className='back-btn';back.textContent='\u2190 Zur\xfcck';back.onclick=showList;dc.appendChild(back);
   var dh=document.createElement('div');dh.className='dheader';
@@ -349,6 +356,7 @@ function mkGhLinks(folder){
 
 function mkFileSection(sid){
   var wrap=document.createElement('div');
+  wrap.id='files-section-'+sid;
 
   // NOTEN
   var sh=document.createElement('div');sh.className='sec-h';sh.textContent='Noten (PDF)';wrap.appendChild(sh);
@@ -413,6 +421,7 @@ function mkFileSection(sid){
 }
 
 function showList(noHistory){
+  _currentDetail=null;
   if(!noHistory)history.pushState({view:'list'},'',location.pathname);
   document.getElementById('vlist').style.display='';document.getElementById('vdetail').style.display='none';
   if(S.tree.length){document.getElementById('btn-col').style.display='';document.getElementById('btn-exp').style.display='';}
