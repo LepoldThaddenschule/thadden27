@@ -7,7 +7,6 @@
     "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
     "audio": ["audio/1_3_Nun_will.mp3"]
   },
-
   "3.2":{
     "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
     "audio": ["audio/3_2 Referat A.mp3"]
@@ -15,8 +14,7 @@
   "3.4":{
     "noten": { "o": ["noten/1-orch.pdf"], "c": [], "s": [] },
     "audio": ["audio/3_4 Referat B.mp3"]
-  },
-  
+  },  
   "14": {
     "noten": { "o": ["noten/14 Finale - Partitur.pdf"], "c": ["noten/Choral _14_Finale.pdf"], "s": [] },
     "audio": ["audio/14 Finale - Vorspiel.mp3", "audio/14 Finale - Choral.mp3"]
