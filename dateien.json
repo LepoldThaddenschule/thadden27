@@ -1,0 +1,41 @@
+{
+  "1.1": {
+    "audio": [
+      "audio/1.1 Marsch.mp3"
+    ]
+  },
+  "1.3": {
+    "noten": [
+      "noten/1.3 Nun will der Lenz uns grüßen - Flöte 1.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Flöte 2.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Gitarre.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Partitur.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Sheet.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Stimme 1.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Stimme 2.pdf",
+      "noten/1.3 Nun will der Lenz uns grüßen - Violoncello.pdf"
+    ],
+    "audio": [
+      "audio/1.3 Nun will der Lenz.mp3"
+    ]
+  },
+  "3.2": {
+    "audio": [
+      "audio/3.2 Eine Heldin A.mp3"
+    ]
+  },
+  "3.4": {
+    "audio": [
+      "audio/3.4 Eine Heldin B.mp3"
+    ]
+  },
+  "14": {
+    "noten": [
+      "noten/14 Finale - Partitur.pdf"
+    ],
+    "audio": [
+      "audio/14 Finale - Choral.mp3",
+      "audio/14 Finale - Vorspiel.mp3"
+    ]
+  }
+}
