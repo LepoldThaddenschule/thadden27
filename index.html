@@ -151,6 +151,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-si
 .audio-nm{font-size:11.5px;font-weight:500;color:var(--tx-mid);flex:1;}
 audio{width:100%;height:36px;border-radius:4px;display:block;}
 .file-empty{font-size:12px;color:var(--tx-dim);padding:4px 0 8px;}
+.dl-all-btn{display:inline-flex;align-items:center;gap:6px;background:var(--acc);border:none;border-radius:5px;padding:7px 14px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:#fff;cursor:pointer;margin-top:6px;transition:background .12s;}
+.dl-all-btn:hover{background:var(--acc-lt);}
+.dl-all-btn:disabled{opacity:.5;cursor:not-allowed;}
+.dl-all-btn .dl-spin{width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.dl-all-btn.loading .dl-spin{display:inline-block;}
+.dl-all-btn.loading .dl-txt{display:none;}
 #mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:29;}
 #mob-overlay.on{display:block;}#mob-filter-btn{display:none;}
 @media(max-width:860px){
@@ -170,6 +176,7 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 }
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 <div id="mob-overlay" onclick="closeSB()"></div>
@@ -311,7 +318,42 @@ if(pdfs.length){
     list.appendChild(row);
   });
 }else{var em=document.createElement('div');em.className='file-empty';em.textContent='Noch keine Noten.';list.appendChild(em);}
-bod.appendChild(list);card.appendChild(bod);wrap.appendChild(card);
+bod.appendChild(list);
+// Download-all button (only if multiple PDFs)
+if(pdfs.length>0){
+  var dlBtn=document.createElement('button');
+  dlBtn.className='dl-all-btn';
+  dlBtn.innerHTML='<span class="dl-spin"></span><span class="dl-txt">&#8595; Alle als ZIP</span>';
+  dlBtn.title='Alle Noten als ZIP-Datei herunterladen';
+  dlBtn.onclick=(function(pdfList,sceneId){return function(){
+    var btn=this;
+    btn.classList.add('loading');
+    btn.disabled=true;
+    var zip=new JSZip();
+    var folder=zip.folder('Noten '+sceneId);
+    var fetches=pdfList.map(function(p){
+      return fetch(p.url)
+        .then(function(r){if(!r.ok)throw new Error(r.status);return r.arrayBuffer();})
+        .then(function(buf){folder.file(p.name,buf);})
+        .catch(function(e){console.warn('ZIP: could not fetch',p.name,e);});
+    });
+    Promise.all(fetches).then(function(){
+      return zip.generateAsync({type:'blob'});
+    }).then(function(blob){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='Noten '+sceneId+'.zip';
+      document.body.appendChild(a);a.click();
+      setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},1000);
+      btn.classList.remove('loading');btn.disabled=false;
+    }).catch(function(e){
+      alert('ZIP konnte nicht erstellt werden: '+e.message);
+      btn.classList.remove('loading');btn.disabled=false;
+    });
+  };})(pdfs,sid);
+  bod.appendChild(dlBtn);
+}
+card.appendChild(bod);wrap.appendChild(card);
 return wrap;}
 function showList(noHistory){_currentDetail=null;if(!noHistory&&(!history.state||history.state.view!=='list'))history.pushState({view:'list'},'',location.pathname);document.getElementById('vlist').style.display='';document.getElementById('vdetail').style.display='none';if(S.tree.length){document.getElementById('btn-col').style.display='';document.getElementById('btn-exp').style.display='';}}
 function collapseAll(c){var bl=document.querySelectorAll('.hb,.ub');for(var i=0;i<bl.length;i++){if(c)bl[i].classList.remove('open');else bl[i].classList.add('open');}}
