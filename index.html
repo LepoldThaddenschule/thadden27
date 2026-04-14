@@ -105,6 +105,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-si
 .etags{display:flex;flex-wrap:wrap;gap:4px;}
 .file-badges{display:flex;gap:2px;margin-left:auto;flex-shrink:0;}
 .fbadge{font-size:12px;line-height:1;opacity:.65;}
+.fbadge-link{cursor:pointer;opacity:.7;transition:opacity .1s,transform .1s;}
+.fbadge-link:hover{opacity:1;transform:scale(1.2);}
 .ub .fbadge,.uur .fbadge{font-size:11px;}
 .uc{border-top:1.5px solid var(--brd);background:#faf8f5;overflow:hidden;max-height:0;transition:max-height .3s ease;}
 .hb.open .uc{max-height:8000px;}
@@ -245,7 +247,40 @@ function gf(sid){if(!S.files[sid])S.files[sid]={noten:[],audio:[]};return S.file
 function hasFiles(sid){var f=gf(sid);return{pdf:f.noten.length>0,mp3:f.audio.length>0};}
 function allIds(sc){var ids=[sc.id];if(sc.sub)for(var i=0;i<sc.sub.length;i++)ids=ids.concat(allIds(sc.sub[i]));return ids;}
 function anyFiles(sc){var ids=allIds(sc),pdf=false,mp3=false;for(var i=0;i<ids.length;i++){var h=hasFiles(ids[i]);if(h.pdf)pdf=true;if(h.mp3)mp3=true;}return{pdf:pdf,mp3:mp3};}
-function mkBadges(sc){var af=anyFiles(sc);if(!af.pdf&&!af.mp3)return null;var w=document.createElement('div');w.className='file-badges';if(af.pdf){var b=document.createElement('span');b.className='fbadge';b.title='Noten vorhanden';b.textContent='\uD83C\uDFBB';w.appendChild(b);}if(af.mp3){var b2=document.createElement('span');b2.className='fbadge';b2.title='Audio vorhanden';b2.textContent='\uD83C\uDFB5';w.appendChild(b2);}return w;}
+function mkBadges(sc){
+  var af=anyFiles(sc);if(!af.pdf&&!af.mp3)return null;
+  var w=document.createElement('div');w.className='file-badges';
+  if(af.pdf){
+    var b=document.createElement('span');b.className='fbadge fbadge-link';
+    b.title='Noten anzeigen';b.textContent='\uD83C\uDFBB';
+    b.onclick=(function(id){return function(e){
+      e.stopPropagation();
+      showDetail(id);
+      setTimeout(function(){
+        var el=document.querySelector('#files-section-'+id+' .sec-h:last-of-type');
+        // Find noten sec-h (second one = noten, after audio)
+        var secs=document.querySelectorAll('#files-section-'+id+' .sec-h');
+        if(secs.length>1)secs[1].scrollIntoView({behavior:'smooth',block:'start'});
+        else if(secs.length>0)secs[0].scrollIntoView({behavior:'smooth',block:'start'});
+      },120);
+    };})(sc.id);
+    w.appendChild(b);
+  }
+  if(af.mp3){
+    var b2=document.createElement('span');b2.className='fbadge fbadge-link';
+    b2.title='Audio anzeigen';b2.textContent='\uD83C\uDFB5';
+    b2.onclick=(function(id){return function(e){
+      e.stopPropagation();
+      showDetail(id);
+      setTimeout(function(){
+        var secs=document.querySelectorAll('#files-section-'+id+' .sec-h');
+        if(secs.length>0)secs[0].scrollIntoView({behavior:'smooth',block:'start'});
+      },120);
+    };})(sc.id);
+    w.appendChild(b2);
+  }
+  return w;
+}
 function startLoad(){showLdr('Lade\u2026');fetch(CSV_FILE).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then(function(buf){var res=parseCSV(dec(buf));S.ensembles=res.ensembles;S.tree=res.tree;S.colorMap=res.colorMap;S.leitungen=res.leitungen||[];S.sel=[];S.lf=null;setSt(res.ensembles.length+' Ensembles \u00b7 '+res.tree.length+' Szenen',true);hideLdr();loadManifest();render();}).catch(function(){hideLdr();setSt('Demo-Daten',false);loadDemo();});}
 function loadManifest(){function apply(data){if(!data)return;for(var sid in data){if(sid.charAt(0)==='_')continue;var e=data[sid],f=gf(sid);if(e.noten){
   // Neues Format: noten ist ein flaches Array
