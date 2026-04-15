@@ -219,6 +219,10 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
       <div class="sb-lbl">Dateien</div>
       <button class="ff-btn" id="ff-pdf" onclick="toggleFileFilter('pdf')"><span class="ff-dot pdf"></span>Noten vorhanden</button>
       <button class="ff-btn" id="ff-mp3" onclick="toggleFileFilter('mp3')"><span class="ff-dot mp3"></span>Audio vorhanden</button>
+      <div style="padding:8px 0 0;font-size:10px;color:var(--tx-dim);line-height:1.6;">
+        <div>🎻 = Noten</div>
+        <div>🎵 = Audio</div>
+      </div>
     </div>
     <div id="leit-block">
       <div class="ens-hdr-row">
@@ -238,17 +242,6 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
   <div id="main">
     <div id="vlist">
       <div id="lcontent">
-        <div id="legend">
-          <div class="leg-lbl">Legende:</div>
-          <div class="leg-item">
-            <span class="fbadge">🎵</span>
-            <span>Audio vorhanden</span>
-          </div>
-          <div class="leg-item">
-            <span class="fbadge">🎻</span>
-            <span>Noten vorhanden</span>
-          </div>
-        </div>
         <div id="sroot"></div>
       </div>
     </div>
