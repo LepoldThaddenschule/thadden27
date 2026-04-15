@@ -216,13 +216,12 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
       <button class="zb"    data-z="gegenwart"     onclick="setZ(this)"><span class="pip"></span>Gegenwart</button>
     </div>
     <div id="file-filter-block">
-      <div class="sb-lbl">Dateien</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="sb-lbl">Dateien</div>
+        <div style="font-size:11px;color:var(--tx-mt);">🎻 🎵</div>
+      </div>
       <button class="ff-btn" id="ff-pdf" onclick="toggleFileFilter('pdf')"><span class="ff-dot pdf"></span>Noten vorhanden</button>
       <button class="ff-btn" id="ff-mp3" onclick="toggleFileFilter('mp3')"><span class="ff-dot mp3"></span>Audio vorhanden</button>
-      <div style="padding:8px 0 0;font-size:10px;color:var(--tx-dim);line-height:1.6;">
-        <div>🎻 = Noten</div>
-        <div>🎵 = Audio</div>
-      </div>
     </div>
     <div id="leit-block">
       <div class="ens-hdr-row">
