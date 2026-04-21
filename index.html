@@ -436,7 +436,7 @@ card.appendChild(bod);wrap.appendChild(card);
 return wrap;}
 function showList(noHistory){_currentDetail=null;if(!noHistory&&(!history.state||history.state.view!=='list'))history.pushState({view:'list'},'',location.pathname);document.getElementById('vlist').style.display='';document.getElementById('vdetail').style.display='none';if(S.tree.length){document.getElementById('btn-col').style.display='';document.getElementById('btn-exp').style.display='';}}
 function collapseAll(c){var bl=document.querySelectorAll('.hb,.ub');for(var i=0;i<bl.length;i++){if(c)bl[i].classList.remove('open');else bl[i].classList.add('open');}}
-function togEns(n){var i=S.sel.indexOf(n);if(i>=0)S.sel.splice(i,1);else S.sel.push(n);render();closeSB();}
+function togEns(n){var i=S.sel.indexOf(n);if(i>=0)S.sel.splice(i,1);else S.sel.push(n);render();}
 function selAll(){S.sel=[];render();}
 function clearLeit(){S.lf=null;render();}
 function setLeit(name){S.lf=(S.lf===name)?null:name;render();}
