@@ -17,25 +17,17 @@
     "notiz": "Bitte pünktlich erscheinen"
   },
   {
-    "datum": "2026-05-08",
+    "datum": "2027-03-15",
     "zeit": "19:30",
     "typ": "Aufführung",
-    "name": "Premiere – Elisabeth",
-    "ort": "Große Bühne"
+    "name": "Beginn Aufführungsschulwoche",
+    "ort": "Aula"
   },
   {
-    "datum": "2026-05-09",
-    "zeit": "15:00",
-    "zeit_ende": "17:30",
-    "typ": "Aufführung",
-    "name": "Elisabeth – Nachmittagsvorstellung",
-    "ort": "Große Bühne"
-  },
-  {
-    "datum": "2026-05-09",
+    "datum": "2026-03-19",
     "zeit": "19:30",
     "typ": "Aufführung",
-    "name": "Elisabeth – Abendvorstellung",
-    "ort": "Große Bühne"
+    "name": "Ende Aufführungsschulwoche",
+    "ort": "Aula"
   }
 ]
