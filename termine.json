@@ -1,0 +1,41 @@
+[
+  {
+    "datum": "2026-04-28",
+    "zeit": "14:00",
+    "zeit_ende": "16:00",
+    "typ": "Probe",
+    "name": "Chorprobe",
+    "ort": "Musiksaal"
+  },
+  {
+    "datum": "2026-05-02",
+    "zeit": "10:00",
+    "zeit_ende": "14:00",
+    "typ": "Probe",
+    "name": "Gesamtprobe mit Technik",
+    "ort": "Aula",
+    "notiz": "Bitte pünktlich erscheinen"
+  },
+  {
+    "datum": "2026-05-08",
+    "zeit": "19:30",
+    "typ": "Aufführung",
+    "name": "Premiere – Elisabeth",
+    "ort": "Große Bühne"
+  },
+  {
+    "datum": "2026-05-09",
+    "zeit": "15:00",
+    "zeit_ende": "17:30",
+    "typ": "Aufführung",
+    "name": "Elisabeth – Nachmittagsvorstellung",
+    "ort": "Große Bühne"
+  },
+  {
+    "datum": "2026-05-09",
+    "zeit": "19:30",
+    "typ": "Aufführung",
+    "name": "Elisabeth – Abendvorstellung",
+    "ort": "Große Bühne"
+  }
+]
