@@ -21,11 +21,24 @@
     "datum": "2027-03-10",
     "zeit": "ca. 20:00",
     "typ": "Probe",
-    "name": "usikprobe mit dem Cross-Over-Chor",
+    "name": "Musikprobe mit dem Cross-Over-Chor",
     "ort": "Gemeindehaus"
   },
-
-
+  
+  {
+    "datum": "2027-03-15",
+    "zeit": "07:50",
+    "typ": "Aufbau",
+    "name": "Beginn des Aufbaus in der Aula",
+    "ort": "Aula"
+  },
+  {
+    "datum": "2027-03-17",
+    "zeit": "13:45",
+    "typ": "Probe",
+    "name": "Laufprobe ohne Gäste",
+    "ort": "Aula"
+  },
 
   {
     "datum": "2027-03-15",
