@@ -16,18 +16,64 @@
     "name": "Ende Probewoche",
     "ort": "Dobel"
   },
+
+  {
+    "datum": "2027-03-10",
+    "zeit": "ca. 20:00",
+    "typ": "Probe",
+    "name": "Musikprobe mit dem Cross-Over-Chor",
+    "ort": "Gemeindehaus"
+  },
+  
   {
     "datum": "2027-03-15",
-    "zeit": "19:30",
-    "typ": "Aufführung",
-    "name": "Beginn Aufführungsschulwoche",
+    "zeit": "07:50",
+    "typ": "Aufbau",
+    "name": "Beginn des Aufbaus in der Aula",
     "ort": "Aula"
   },
   {
+    "datum": "2027-03-17",
+    "zeit": "13:45",
+    "typ": "Probe",
+    "name": "Laufprobe ohne Gäste",
+    "ort": "Aula"
+  },
+  {
+    "datum": "2027-03-18",
+    "zeit": "ca. 18:00",
+    "typ": "Probe",
+    "name": "Generalprobe",
+    "ort": "Aula"
+  },
+
+  {
     "datum": "2027-03-19",
-    "zeit": "19:30",
+    "zeit": "ca. 19:00",
     "typ": "Aufführung",
-    "name": "Ende Aufführungsschulwoche",
+    "name": "Aufführung 1",
+    "ort": "Aula"
+  },
+  {
+    "datum": "2027-03-20",
+    "zeit": "ca. 19:00",
+    "typ": "Aufführung",
+    "name": "2. Aufführung",
+    "ort": "Aula"
+  },
+    {
+    "datum": "2027-03-21",
+    "zeit": "ca. ca. 16:00",
+    "typ": "Aufführung",
+    "name": "3. Aufführung",
+    "ort": "Aula"
+  },
+
+    {
+    "datum": "2027-03-22",
+    "zeit": "07:50",
+    "typ": "Abbau",
+    "name": "Beginn des Abbaus in der Aula",
     "ort": "Aula"
   }
 ]
