@@ -357,15 +357,90 @@ function mkBadges(sc){
   return w;
 }
 function startLoad(){showLdr('Lade\u2026');fetch(CSV_FILE).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then(function(buf){var res=parseCSV(dec(buf));S.ensembles=res.ensembles;S.tree=res.tree;S.colorMap=res.colorMap;S.leitungen=res.leitungen||[];S.sel=[];S.lf=null;setSt(res.ensembles.length+' Ensembles \u00b7 '+res.tree.length+' Szenen',true);hideLdr();loadManifest();render();}).catch(function(){hideLdr();setSt('Demo-Daten',false);loadDemo();});}
-function loadManifest(){function apply(data){if(!data)return;for(var sid in data){if(sid.charAt(0)==='_')continue;var e=data[sid],f=gf(sid);if(e.noten){
-  // Neues Format: noten ist ein flaches Array
-  if(Array.isArray(e.noten)){
-    e.noten.forEach(function(path){var p=path.split('/');var url=path.indexOf('http')===0?path:'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path.split('/').map(encodeURIComponent).join('/');f.noten.push({name:p[p.length-1],url:url});});
-  } else {
-    // Altes Format: {o:[],c:[],s:[]}
-    ['o','c','s'].forEach(function(k){if(e.noten[k])e.noten[k].forEach(function(path){var p=path.split('/');var url=path.indexOf('http')===0?path:'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path.split('/').map(encodeURIComponent).join('/');f.noten.push({name:p[p.length-1],url:url});});});
+function fileUrl(path){
+  // Wichtig für iPad/Webclip:
+  // Dateien sollen über GitHub Pages relativ zur Website geladen werden,
+  // nicht über raw.githubusercontent.com.
+  if(!path)return '';
+  path=String(path).trim();
+
+  var rawBase='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
+  if(path.indexOf(rawBase)===0){
+    path=decodeURIComponent(path.substring(rawBase.length));
   }
-}if(e.audio)e.audio.forEach(function(path){var p=path.split('/');var url=path.indexOf('http')===0?path:'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path.split('/').map(encodeURIComponent).join('/');f.audio.push({name:p[p.length-1],url:url});});}render();if(_currentDetail){var fs=document.getElementById('files-section-'+_currentDetail);if(fs){var nf=mkFileSection(_currentDetail);fs.parentNode.replaceChild(nf,fs);}}}fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/dateien.json',{headers:{'Accept':'application/vnd.github.v3+json'}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(d&&d.content){try{apply(JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))));}catch(e){}}else fb();}).catch(fb);function fb(){fetch('dateien.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).then(apply).catch(function(){});}}
+
+  // Externe Links bewusst unverändert lassen.
+  if(/^https?:\/\//i.test(path))return path;
+
+  // Relative Pfade säubern: kein führender Slash, sonst verlässt man bei GitHub Pages
+  // den Projektordner /thadden27/.
+  path=path.replace(/^\.\//,'').replace(/^\/+/, '');
+
+  // Sonderzeichen/Leerzeichen für URL sauber kodieren, aber Ordnerstruktur behalten.
+  return path.split('/').map(function(part){return encodeURIComponent(part);}).join('/');
+}
+function fileNameFromPath(path){
+  if(!path)return 'datei';
+  path=String(path).trim();
+  var rawBase='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
+  if(path.indexOf(rawBase)===0)path=decodeURIComponent(path.substring(rawBase.length));
+  try{
+    if(/^https?:\/\//i.test(path))path=new URL(path).pathname;
+  }catch(e){}
+  path=path.split('?')[0].split('#')[0];
+  var parts=path.split('/').filter(Boolean);
+  try{return decodeURIComponent(parts[parts.length-1]||'datei');}
+  catch(e){return parts[parts.length-1]||'datei';}
+}
+function addManifestFile(list,path){
+  list.push({name:fileNameFromPath(path),url:fileUrl(path)});
+}
+function loadManifest(){
+  function apply(data){
+    if(!data)return;
+    for(var sid in data){
+      if(sid.charAt(0)==='_')continue;
+      var e=data[sid],f=gf(sid);
+
+      if(e.noten){
+        // Neues Format: noten ist ein flaches Array
+        if(Array.isArray(e.noten)){
+          e.noten.forEach(function(path){addManifestFile(f.noten,path);});
+        } else {
+          // Altes Format: {o:[],c:[],s:[]}
+          ['o','c','s'].forEach(function(k){
+            if(e.noten[k])e.noten[k].forEach(function(path){addManifestFile(f.noten,path);});
+          });
+        }
+      }
+
+      if(e.audio){
+        e.audio.forEach(function(path){addManifestFile(f.audio,path);});
+      }
+    }
+    render();
+    if(_currentDetail){
+      var fs=document.getElementById('files-section-'+_currentDetail);
+      if(fs){var nf=mkFileSection(_currentDetail);fs.parentNode.replaceChild(nf,fs);}
+    }
+  }
+
+  fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/dateien.json',{headers:{'Accept':'application/vnd.github.v3+json'}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){
+      if(d&&d.content){
+        try{apply(JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))));}
+        catch(e){fb();}
+      }else fb();
+    }).catch(fb);
+
+  function fb(){
+    fetch('dateien.json?t='+Date.now())
+      .then(function(r){return r.ok?r.json():null;})
+      .then(apply)
+      .catch(function(){});
+  }
+}
 function showLdr(m){document.getElementById('loader-msg').textContent=m;document.getElementById('loader').classList.add('on');}
 function hideLdr(){document.getElementById('loader').classList.remove('on');}
 function setSt(m,ok){var el=document.getElementById('status');el.textContent=m;el.className=ok?'ok':'err';}
@@ -399,7 +474,7 @@ function aSVG(){return'<svg width="10" height="10" viewBox="0 0 10 10" fill="non
 function findSc(id,nodes){for(var i=0;i<nodes.length;i++){if(nodes[i].id===id)return nodes[i];if(nodes[i].sub&&nodes[i].sub.length){var f=findSc(id,nodes[i].sub);if(f)return f;}}return null;}
 function showDetail(id,noHistory){var sc=findSc(id,S.tree);if(!sc)return;_currentDetail=id;if(!noHistory)history.pushState({view:'detail',id:id},'',location.pathname+'?szene='+encodeURIComponent(id));document.getElementById('vlist').style.display='none';document.getElementById('vdetail').style.display='flex';document.getElementById('btn-col').style.display='none';document.getElementById('btn-exp').style.display='none';var dc=document.getElementById('dcontent');dc.innerHTML='';var back=document.createElement('button');back.className='back-btn';back.textContent='\u2190 Zur\xfcck';back.onclick=showList;dc.appendChild(back);var dh=document.createElement('div');dh.className='dheader';dh.innerHTML='<div class="dnum">Szene '+esc(sc.id)+'</div><div class="dtitle">'+esc(sc.name)+'</div>';var dmeta=document.createElement('div');dmeta.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;';if(sc.zeit&&sc.zeit!=='alle'){var pp=document.createElement('span');pp.className='zpill '+sc.zeit;pp.textContent=sc.zeit==='vergangenheit'?'Vergangenheit':'Gegenwart';dmeta.appendChild(pp);}if(sc.leitung){var dl=document.createElement('span');dl.className='leit-detail';dl.innerHTML='\u266a <strong>Mus. Leitung:</strong>\u00a0'+esc(sc.leitung);dmeta.appendChild(dl);}if(dmeta.children.length)dh.appendChild(dmeta);dc.appendChild(dh);if(sc.sub&&sc.sub.length){var sh=document.createElement('div');sh.className='sec-h';sh.textContent='Unterszenen';dc.appendChild(sh);for(var i=0;i<sc.sub.length;i++){var sub=sc.sub[i];var item=document.createElement('div');item.className='dsub';item.onclick=(function(id){return function(){showDetail(id);};})(sub.id);var sn=document.createElement('span');sn.className='dsub-num';sn.textContent=sub.id;item.appendChild(sn);var snm=document.createElement('span');snm.className='dsub-name';snm.textContent=sub.name;item.appendChild(snm);if(sub.leitung){var lt4=document.createElement('span');lt4.className='leit-tag';lt4.style.marginLeft='4px';lt4.textContent='\u266a\u00a0'+sub.leitung;item.appendChild(lt4);}var sarr=document.createElement('span');sarr.style.color='var(--tx-dim)';sarr.textContent=' \u203a';item.appendChild(sarr);dc.appendChild(item);}}if(sc.ensembles.length){var sh2=document.createElement('div');sh2.className='sec-h';sh2.textContent='Beteiligte Ensembles';dc.appendChild(sh2);var tg=document.createElement('div');tg.className='etags';tg.style.marginBottom='6px';mkTags(tg,sc.ensembles);dc.appendChild(tg);}dc.appendChild(mkFileSection(sc.id));}
 function mkFileSection(sid){var wrap=document.createElement('div');wrap.id='files-section-'+sid;
-var sh2=document.createElement('div');sh2.className='sec-h';sh2.textContent='Audio';wrap.appendChild(sh2);var card2=document.createElement('div');card2.className='file-card';var ch=document.createElement('div');ch.className='file-card-head';ch.textContent='\uD83C\uDFB5 Audiodateien';card2.appendChild(ch);var bod2=document.createElement('div');bod2.className='file-card-body';var mp3s=gf(sid).audio;if(mp3s.length){mp3s.forEach(function(m){var item=document.createElement('div');item.className='audio-item';var top=document.createElement('div');top.className='audio-top';var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;';dl.textContent='\u2193 Download';top.appendChild(dl);item.appendChild(top);var pl=document.createElement('audio');
+var sh2=document.createElement('div');sh2.className='sec-h';sh2.textContent='Audio';wrap.appendChild(sh2);var card2=document.createElement('div');card2.className='file-card';var ch=document.createElement('div');ch.className='file-card-head';ch.textContent='\uD83C\uDFB5 Audiodateien';card2.appendChild(ch);var bod2=document.createElement('div');bod2.className='file-card-body';var mp3s=gf(sid).audio;if(mp3s.length){mp3s.forEach(function(m){var item=document.createElement('div');item.className='audio-item';var top=document.createElement('div');top.className='audio-top';var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';dl.rel='noopener';dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;';dl.textContent='\u2193 Download';top.appendChild(dl);item.appendChild(top);var pl=document.createElement('audio');
 pl.controls=true;
 pl.preload='metadata';
 var ext=(m.url.split('?')[0].split('.').pop()||'mp3').toLowerCase();
@@ -426,7 +501,7 @@ if(pdfs.length){
     var row=document.createElement('div');row.className='file-row';
     row.innerHTML='<span>\uD83D\uDCC4</span>';
     var nm=document.createElement('span');nm.className='file-nm';nm.textContent=p.name;row.appendChild(nm);
-    var a=document.createElement('a');a.href=p.url;a.target='_blank';a.textContent='\u2193 \xd6ffnen';row.appendChild(a);
+    var a=document.createElement('a');a.href=p.url;a.target='_blank';a.rel='noopener';a.textContent='\xd6ffnen';row.appendChild(a);
     list.appendChild(row);
   });
 }else{var em=document.createElement('div');em.className='file-empty';em.textContent='Noch keine Noten.';list.appendChild(em);}
