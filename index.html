@@ -14,11 +14,13 @@
 <title>Thadden27 &middot; Besetzung</title>
 
 <!-- Browser-Tab / Favicon -->
-<link rel="icon" type="image/png" href="thadden27-icon.png?v=1">
-<link rel="shortcut icon" type="image/png" href="thadden27-icon.png?v=1">
+<link rel="icon" type="image/png" sizes="32x32" href="/thadden27/thadden27-icon.png?v=5">
+<link rel="icon" type="image/png" sizes="192x192" href="/thadden27/thadden27-icon.png?v=5">
+<link rel="shortcut icon" type="image/png" href="/thadden27/thadden27-icon.png?v=5">
 
 <!-- iPhone / iPad Favorit und Home-Bildschirm -->
-<link rel="apple-touch-icon" href="thadden27-icon.png?v=1">
+<link rel="apple-touch-icon" sizes="180x180" href="/thadden27/thadden27-icon.png?v=5">
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@400;500;600&family=Inconsolata:wght@400;500&display=swap');
 :root{--bg:#f4f1ec;--sur:#fff;--sur2:#eae6e0;--brd:#c4bbb0;--brd-dk:#96897c;--tx:#0d0b09;--tx-mid:#36322c;--tx-mt:#6a6258;--tx-dim:#9e9288;--acc:#0f2d54;--acc-lt:#1a4a8a;--acc-bg:rgba(15,45,84,.08);--past:#5a2060;--past-bg:rgba(90,32,96,.09);--past-bd:rgba(90,32,96,.32);--now:#124a2e;--now-bg:rgba(18,74,46,.09);--now-bd:rgba(18,74,46,.32);--sw:272px;}
@@ -65,17 +67,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-si
 #main{flex:1;overflow-y:auto;min-width:0;display:flex;flex-direction:column;}
 #vlist,#vdetail{display:flex;flex-direction:column;flex:1;}#vdetail{display:none;}
 #lcontent{padding:26px 30px;max-width:1000px;}
-/* LEGEND */
 #legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;padding:9px 14px;background:var(--sur);border:1.5px solid var(--brd);border-radius:7px;font-size:11.5px;color:var(--tx-mt);}
 .leg-lbl{font-weight:600;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-dim);flex-shrink:0;}
 .leg-item{display:flex;align-items:center;gap:5px;white-space:nowrap;}
 .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-/* AKT */
 .akt-h{display:flex;align-items:center;gap:14px;margin:32px 0 12px;}.akt-h:first-child{margin-top:0;}
 .akt-rule{flex:1;height:1.5px;background:var(--brd);}
 .akt-nm{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;font-style:italic;color:var(--tx-mt);white-space:nowrap;}
-/* PAUSE */
 .pause-block{display:flex;align-items:center;margin:20px 0;border-radius:7px;overflow:hidden;background:#0f2d54;min-height:48px;position:relative;}
 .pause-inner{width:100%;overflow:hidden;padding:0;}
 .pause-line{display:none;}.pause-badge{display:none;}
@@ -84,7 +83,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-si
 .pause-dog{display:inline-block;font-style:normal;font-size:20px;margin-left:10px;animation:marquee 5s linear infinite,dogrun .4s steps(1) infinite;}
 @keyframes dogrun{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}}
 .pause-block.greyed{opacity:.2;}
-/* SCENE BLOCKS */
 .hb{margin-bottom:5px;border:1.5px solid var(--brd);border-radius:7px;background:var(--sur);overflow:hidden;transition:opacity .15s,border-color .15s;}
 .hb.greyed{opacity:.18;}.hb.hz{opacity:.15;}.hb.hidden-hb{display:none;}.hb.lit{border-color:var(--acc);border-left-width:4px;}
 .hh{padding:10px 12px 10px 14px;transition:background .1s;}.hh:hover{background:var(--sur2);}
@@ -125,7 +123,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-si
 .uurnum{font-family:'Inconsolata',monospace;font-size:10.5px;color:var(--tx-dim);min-width:54px;flex-shrink:0;}
 .uurname{font-family:'Cormorant Garamond',serif;font-size:14.5px;color:var(--tx-mt);cursor:pointer;flex:1;}
 .uurname:hover{color:var(--acc);text-decoration:underline;}
-/* DETAIL */
 #dcontent{padding:28px 32px;max-width:860px;}
 .back-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1.5px solid var(--brd);border-radius:5px;padding:6px 13px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:var(--tx-mid);cursor:pointer;margin-bottom:22px;}
 .back-btn:hover{border-color:var(--brd-dk);background:var(--sur2);}
@@ -179,13 +176,11 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 }
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
 
-/* ── NAV TABS ── */
 .top-nav{display:flex;gap:2px;margin-right:8px;}
 .nav-tab{background:rgba(255,255,255,.1);border:none;border-radius:5px;padding:5px 14px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;transition:all .15s;}
 .nav-tab:hover{background:rgba(255,255,255,.18);color:#fff;}
 .nav-tab.on{background:rgba(255,255,255,.22);color:#fff;}
 
-/* ── TERMINE PAGE ── */
 #tcontent{padding:26px 30px;max-width:820px;}
 .mon-group{margin-bottom:32px;}
 .mon-hdr{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
@@ -207,9 +202,6 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 .termin-heute{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--now);background:var(--now-bg);border:1px solid var(--now-bd);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:middle;}
 .t-empty{padding:40px 20px;text-align:center;color:var(--tx-dim);font-size:13px;}
 
-/* ── FILTER BUTTONS – unified design ───────────────────── */
-
-/* Shared filter button base – used by Zeitebene, Leitung, Dateien */
 .fil-btn{display:flex;align-items:center;gap:7px;background:none;border:none;border-radius:5px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12px;color:var(--tx-mt);cursor:pointer;text-align:left;width:100%;margin-bottom:1px;transition:background .1s,color .1s;}
 .fil-btn:hover{background:rgba(0,0,0,.05);color:var(--tx);}
 .fil-btn.on{background:rgba(0,0,0,.07);color:var(--tx);font-weight:600;}
@@ -218,13 +210,11 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 .fil-chk{margin-left:auto;flex-shrink:0;font-size:11px;color:transparent;}
 .fil-btn.on .fil-chk,.zb.on .fil-chk,.leit-btn.on .fil-chk,.ff-btn.on .fil-chk{color:var(--tx-mid);}
 
-/* Zeitebene – reuse fil-btn + colored pip only when active */
 .zb{display:flex;align-items:center;gap:7px;background:none;border:none;border-radius:5px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12px;color:var(--tx-mt);cursor:pointer;text-align:left;width:100%;margin-bottom:1px;transition:background .1s,color .1s;}
 .pip{display:none;}
 .zb:hover{background:rgba(0,0,0,.05);color:var(--tx);}
 .zb.on{background:rgba(0,0,0,.07);color:var(--tx);font-weight:600;}
 
-/* Leitung buttons */
 .leit-btn{display:flex;align-items:center;gap:7px;background:none;border:none;border-radius:5px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12px;color:var(--tx-mt);cursor:pointer;text-align:left;width:100%;margin-bottom:1px;transition:background .1s,color .1s;}
 .leit-btn:hover{background:rgba(0,0,0,.05);color:var(--tx);}
 .leit-btn.on{background:rgba(0,0,0,.07);color:var(--tx);font-weight:600;}
@@ -232,7 +222,6 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 .leit-btn.on .leit-chk{color:var(--tx-mid);}
 #leit-list{padding:4px 8px 8px;}
 
-/* Ensemble buttons – same base, but colored dot when active */
 .ens-btn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;border-radius:5px;padding:6px 10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;color:var(--tx-mid);text-align:left;margin-bottom:1px;transition:background .1s;}
 .ens-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .chk{margin-left:auto;font-size:11px;color:transparent;flex-shrink:0;}
@@ -240,12 +229,10 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 .ens-btn.on{font-weight:600;background:rgba(0,0,0,.04);}
 .ens-btn.on .chk{color:var(--tx-mid);}
 
-/* Alle-button – same neutral style */
 .alle-btn{background:none;border:1.5px solid var(--brd);border-radius:4px;padding:3px 9px;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;color:var(--tx-dim);cursor:pointer;transition:all .1s;}
 .alle-btn:hover{border-color:var(--brd-dk);color:var(--tx-mid);}
 .alle-btn.on{background:var(--brd);color:var(--tx-mid);}
 
-/* Dateien filter */
 .ff-btn{display:flex;align-items:center;gap:7px;background:none;border:none;border-radius:5px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12px;color:var(--tx-mt);cursor:pointer;width:100%;margin-bottom:1px;text-align:left;transition:background .1s,color .1s;}
 .ff-btn:hover{background:rgba(0,0,0,.05);color:var(--tx);}
 .ff-btn.on{background:rgba(0,0,0,.07);color:var(--tx);font-weight:600;}
@@ -256,7 +243,6 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 .ff-btn.on .ff-chk{color:var(--tx-mid);}
 #file-filter-block{padding:11px 8px 8px 8px;border-bottom:2px solid var(--brd);flex-shrink:0;}
 
-/* Sidebar section labels */
 .sb-lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--tx-dim);margin-bottom:4px;padding:0 10px;}
 .ens-hdr-row{padding:11px 10px 6px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;}
 .ens-hdr-lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--tx-dim);}
@@ -308,9 +294,9 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
     </div>
     <div id="zeit-block">
       <div class="sb-lbl">Zeitebene</div>
-      <button class="zb on" data-z="alle"          onclick="setZ(this)">Alle Zeiten<span class="fil-chk" id="zb-chk-alle"></span></button>
-      <button class="zb"    data-z="vergangenheit" onclick="setZ(this)">Vergangenheit<span class="fil-chk" id="zb-chk-verg"></span></button>
-      <button class="zb"    data-z="gegenwart"     onclick="setZ(this)">Gegenwart<span class="fil-chk" id="zb-chk-geg"></span></button>
+      <button class="zb on" data-z="alle" onclick="setZ(this)">Alle Zeiten<span class="fil-chk" id="zb-chk-alle"></span></button>
+      <button class="zb" data-z="vergangenheit" onclick="setZ(this)">Vergangenheit<span class="fil-chk" id="zb-chk-verg"></span></button>
+      <button class="zb" data-z="gegenwart" onclick="setZ(this)">Gegenwart<span class="fil-chk" id="zb-chk-geg"></span></button>
     </div>
   </div>
   <div id="main">
@@ -331,6 +317,7 @@ var GH_BRANCH='main';
 var _currentDetail=null;
 var PAL=[{bg:'#dce8f5',bd:'#4a7fb5',tx:'#0f3460'},{bg:'#daf0e4',bd:'#4aab73',tx:'#0f4a2a'},{bg:'#f5dce8',bd:'#b54a7f',tx:'#60113a'},{bg:'#f5f0dc',bd:'#b5934a',tx:'#60430f'},{bg:'#ecdcf5',bd:'#8f4ab5',tx:'#3d1160'},{bg:'#f5e4dc',bd:'#b5694a',tx:'#602610'},{bg:'#dcf5f5',bd:'#4ab5b5',tx:'#0f4a4a'},{bg:'#f0f5dc',bd:'#95b54a',tx:'#3a4a10'},{bg:'#f5dcf5',bd:'#b54ab5',tx:'#5a1160'},{bg:'#dcf5ec',bd:'#4ab58f',tx:'#0f4a35'},{bg:'#f0dcf5',bd:'#9f4ab5',tx:'#44116a'},{bg:'#f5dcdc',bd:'#b54a4a',tx:'#601111'},{bg:'#dce8f0',bd:'#4a8fb5',tx:'#0f3d5a'},{bg:'#f5f5dc',bd:'#aaaa4a',tx:'#484810'},{bg:'#dce4dc',bd:'#6a8f6a',tx:'#1f4a1f'}];
 var S={ensembles:[],tree:[],colorMap:{},leitungen:[],sel:[],zf:'alle',lf:null,ff:{pdf:false,mp3:false},files:{}};
+
 function gf(sid){if(!S.files[sid])S.files[sid]={noten:[],audio:[]};return S.files[sid];}
 function hasFiles(sid){var f=gf(sid);return{pdf:f.noten.length>0,mp3:f.audio.length>0};}
 function allIds(sc){var ids=[sc.id];if(sc.sub)for(var i=0;i<sc.sub.length;i++)ids=ids.concat(allIds(sc.sub[i]));return ids;}
@@ -345,8 +332,6 @@ function mkBadges(sc){
       e.stopPropagation();
       showDetail(id);
       setTimeout(function(){
-        var el=document.querySelector('#files-section-'+id+' .sec-h:last-of-type');
-        // Find noten sec-h (second one = noten, after audio)
         var secs=document.querySelectorAll('#files-section-'+id+' .sec-h');
         if(secs.length>1)secs[1].scrollIntoView({behavior:'smooth',block:'start'});
         else if(secs.length>0)secs[0].scrollIntoView({behavior:'smooth',block:'start'});
@@ -371,9 +356,6 @@ function mkBadges(sc){
 }
 function startLoad(){showLdr('Lade\u2026');fetch(CSV_FILE).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then(function(buf){var res=parseCSV(dec(buf));S.ensembles=res.ensembles;S.tree=res.tree;S.colorMap=res.colorMap;S.leitungen=res.leitungen||[];S.sel=[];S.lf=null;setSt(res.ensembles.length+' Ensembles \u00b7 '+res.tree.length+' Szenen',true);hideLdr();loadManifest();render();}).catch(function(){hideLdr();setSt('Demo-Daten',false);loadDemo();});}
 function fileUrl(path){
-  // Wichtig für iPad/Webclip:
-  // Dateien sollen über GitHub Pages relativ zur Website geladen werden,
-  // nicht über raw.githubusercontent.com.
   if(!path)return '';
   path=String(path).trim();
 
@@ -382,14 +364,9 @@ function fileUrl(path){
     path=decodeURIComponent(path.substring(rawBase.length));
   }
 
-  // Externe Links bewusst unverändert lassen.
   if(/^https?:\/\//i.test(path))return path;
 
-  // Relative Pfade säubern: kein führender Slash, sonst verlässt man bei GitHub Pages
-  // den Projektordner /thadden27/.
   path=path.replace(/^\.\//,'').replace(/^\/+/, '');
-
-  // Sonderzeichen/Leerzeichen für URL sauber kodieren, aber Ordnerstruktur behalten.
   return path.split('/').map(function(part){return encodeURIComponent(part);}).join('/');
 }
 function fileNameFromPath(path){
@@ -416,11 +393,9 @@ function loadManifest(){
       var e=data[sid],f=gf(sid);
 
       if(e.noten){
-        // Neues Format: noten ist ein flaches Array
         if(Array.isArray(e.noten)){
           e.noten.forEach(function(path){addManifestFile(f.noten,path);});
         } else {
-          // Altes Format: {o:[],c:[],s:[]}
           ['o','c','s'].forEach(function(k){
             if(e.noten[k])e.noten[k].forEach(function(path){addManifestFile(f.noten,path);});
           });
@@ -492,12 +467,10 @@ pl.controls=true;
 pl.preload='metadata';
 var ext=(m.url.split('?')[0].split('.').pop()||'mp3').toLowerCase();
 var mimes={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','m4a':'audio/mp4','aac':'audio/aac'};
-// Use <source> for proper MIME type support
 var src=document.createElement('source');
 src.src=m.url;
 src.type=mimes[ext]||'audio/mpeg';
 pl.appendChild(src);
-// Fallback: direct link if player fails
 var fb=document.createElement('div');
 fb.style.cssText='font-size:10px;color:var(--tx-dim);margin-top:3px;';
 fb.innerHTML='Wenn der Player nicht lädt: <a href="'+m.url+'" target="_blank" style="color:var(--acc)">direkt öffnen</a>';
@@ -519,7 +492,6 @@ if(pdfs.length){
   });
 }else{var em=document.createElement('div');em.className='file-empty';em.textContent='Noch keine Noten.';list.appendChild(em);}
 bod.appendChild(list);
-// Download-all button (only if multiple PDFs)
 if(pdfs.length>0){
   var dlBtn=document.createElement('button');
   dlBtn.className='dl-all-btn';
@@ -577,7 +549,7 @@ function openSB(){document.getElementById('sidebar').classList.add('open');docum
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-overlay').classList.remove('on');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function loadDemo(){var csv="Akt;Szene;Name;Vergangenheit;Gegenwart;Musikalische Leitung;Philharmoniker;Kammerorchester;Chor A;Chor B;Ballett;Schauspiel;T\xe4nzer Solo\nProlog;1;Ouvert\xfcre;X;;Max Mustermann;X;;;;;;\nProlog;1a;Streicher-Intro;X;;Max Mustermann;X;;;;;;\nProlog;2;Einleitung;;X;;;;;;;;X;;\nAkt I;3;Ballsaal der Gr\xe4fin;X;;Max Mustermann;X;;X;;;X;\nAkt I;3.1;Einzug der G\xe4ste;X;;Max Mustermann;X;;X;;;;\nAkt I;3.2;Erster Tanz;X;;Max Mustermann;X;;;;X;;X\nAkt I;4;Ankunft des Fremden;X;;;;;;;X;;\nAkt I;5;Erstes Gespr\xe4ch;;X;;;;;;;;X;;\nAkt I;Pause;Pause;;X;;;;;;;\nAkt II;6;Marktplatz;;X;;X;;X;X;;;\nAkt II;6.1;H\xe4ndler rufen;;X;;X;;X;;;;\nAkt II;7;Traumsequenz;X;;Maria Muster;;;X;;;X;X\nAkt II;8;Konfrontation;;X;;;;;;;X;;\nAkt III;9;Finale Chor;X;;Max Mustermann;X;;X;X;;;\nAkt III;9.1;Sopran-Solo;X;;Maria Muster;;;X;;;;\nAkt III;10;Epilog;;X;;;;;;;X;;";var res=parseCSV(csv);S.ensembles=res.ensembles;S.tree=res.tree;S.colorMap=res.colorMap;S.leitungen=res.leitungen||[];S.sel=[];S.lf=null;setSt('Demo \u00b7 '+res.ensembles.length+' Ensembles \u00b7 '+res.tree.length+' Szenen',true);render();}
-// ── PAGE SWITCHING ───────────────────────────────────────
+
 function showPage(page){
   var isBes = page==='besetzung';
   document.getElementById('sidebar').style.display = isBes ? '' : 'none';
@@ -598,7 +570,6 @@ function showPage(page){
   }
 }
 
-// ── TERMINE ──────────────────────────────────────────────
 var TERMINE = [];
 
 function loadTermine(){
@@ -623,19 +594,16 @@ function renderTermine(){
     tc.innerHTML = '<div class="t-empty">Noch keine Termine eingetragen.<br>Bitte <strong>termine.json</strong> auf GitHub anlegen.</div>';
     return;
   }
-  // Sort by date
   var sorted = TERMINE.slice().sort(function(a,b){return a.datum.localeCompare(b.datum);});
   var today = new Date(); today.setHours(0,0,0,0);
-  // Group by month
   var months = {}, order = [];
   sorted.forEach(function(t){
-    var key = t.datum.substring(0,7); // YYYY-MM
+    var key = t.datum.substring(0,7);
     if(!months[key]){months[key]=[];order.push(key);}
     months[key].push(t);
   });
   order.forEach(function(mkey){
     var grp = document.createElement('div'); grp.className='mon-group';
-    // Month header
     var mh = document.createElement('div'); mh.className='mon-hdr';
     var parts = mkey.split('-');
     var mnames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
@@ -649,35 +617,29 @@ function renderTermine(){
       var row = document.createElement('div');
       var typ = (t.typ||'sonstiges').toLowerCase();
       row.className = 'termin-row ' + typ;
-      // Check if past
       var tdate = new Date(t.datum); tdate.setHours(0,0,0,0);
       if(tdate < today) row.classList.add('past');
-      // Date
       var wdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
       var d = new Date(t.datum);
       var dstr = wdays[d.getDay()]+' '+String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
       var datEl = document.createElement('div'); datEl.className='termin-date';
       datEl.textContent = dstr;
-      // Heute badge
       if(tdate.getTime()===today.getTime()){
         var hb=document.createElement('span');hb.className='termin-heute';hb.textContent='Heute';
         datEl.appendChild(hb);
       }
       row.appendChild(datEl);
-      // Time (supports single time or start-end)
       var timeEl = document.createElement('div'); timeEl.className='termin-time';
       if(t.zeit_ende){ timeEl.textContent = (t.zeit||'') + ' – ' + t.zeit_ende; }
       else if(t.zeit){ timeEl.textContent = t.zeit + ' Uhr'; }
       else { timeEl.textContent = ''; }
       row.appendChild(timeEl);
-      // Body
       var body = document.createElement('div'); body.className='termin-body';
       var name = document.createElement('div'); name.className='termin-name'; name.textContent=t.name||'';
       body.appendChild(name);
       if(t.ort){var ort=document.createElement('div');ort.className='termin-ort';ort.textContent=t.ort;body.appendChild(ort);}
       if(t.notiz){var nz=document.createElement('div');nz.style.cssText='font-size:11px;color:var(--tx-dim);margin-top:3px;font-style:italic;';nz.textContent=t.notiz;body.appendChild(nz);}
       row.appendChild(body);
-      // Typ badge
       var typEl = document.createElement('div'); typEl.className='termin-typ '+typ;
       typEl.textContent = t.typ||'';
       row.appendChild(typEl);
@@ -690,7 +652,6 @@ function renderTermine(){
 window.addEventListener('popstate',function(e){if(e.state&&e.state.view==='detail'){showDetail(e.state.id,true);}else{showList(true);}});
 function checkUrlNav(){var p=new URLSearchParams(location.search);var s=p.get('szene');if(s)setTimeout(function(){showDetail(s,true);},150);}
 if(!history.state)history.replaceState({view:'list'},'',location.href);
-// Init Zeitebene checkmark
 var initZb=document.querySelector('.zb.on');
 if(initZb){var initChk=initZb.querySelector('.fil-chk');if(initChk)initChk.textContent='✓';}
 startLoad();
