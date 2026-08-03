@@ -141,6 +141,9 @@
       "noten/11.1 Gavotte Violine I.pdf",
       "noten/11.1 Gavotte Violine II.pdf",
       "noten/11.1 Gavotte Violoncello.pdf"
+    ],
+    "audio": [
+      "audio/11.1 Gavotte.mp3"
     ]
   },
   "12.2": {
@@ -148,7 +151,7 @@
       "audio/12.2 Kann Schule neutral sein.mp3"
     ]
   },
-  "13a.2": {
+  "13": {
     "noten": [
       "noten/13a.2 Mach End o Herr mach Ende.pdf"
     ]
