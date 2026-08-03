@@ -37,10 +37,10 @@ Pause;;;;;;;;;;;;;;
 12.2;Kann Schule neutral sein?;;;;;Balbach;x;x;;;x;x;x;
 12.3;Demonstration;;x;x;x;;;x;;x;;;;
 13;Multible Enden;x;x;;;;;;;;;;;
-13a-1;Ermordung Elisabeth v. Thadden;x;;;x;;;;;;;;;
-13a-2;Mach End o Herr mach Ende;;;;;Roman;x;x;x;;;;;
-13b-1;Dystopie ;;x;;x;;;;;;;;;
-13b-2;Marsch;;x;;x;Boyne ;;;;;x;x;x;
+13a.1;Ermordung Elisabeth v. Thadden;x;;;x;;;;;;;;;
+13a.2;Mach End o Herr mach Ende;;;;;Roman;x;x;x;;;;;
+13b.1;Dystopie ;;x;;x;;;;;;;;;
+13b.2;Marsch;;x;;x;Boyne ;;;;;x;x;x;
 13c;Tanz um die Mitte;;x;x;;;;;;;;x;x;x
 13d;Mögliches Happy End;;x;;x;;;;;;;;;
 14;Finale;;;;;Lepold;x;x;x;;x;x;x;x
