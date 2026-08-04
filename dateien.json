@@ -102,12 +102,7 @@
       "noten/3.2 Aufstehen und Laut sein - Akt 1 - Violoncello.pdf"
     ],
     "audio": [
-      "audio/3.2 Eine Heldin A.mp3"
-    ]
-  },
-  "3.4": {
-    "audio": [
-      "audio/3.4 Eine Heldin B.mp3"
+      "audio/3.2 Aufstehen und Laut sein.mp3"
     ]
   },
   "6.1": {
@@ -184,6 +179,9 @@
       "noten/11.2 Kann Schule neutral sein - Violine I.pdf",
       "noten/11.2 Kann Schule neutral sein - Violine II.pdf",
       "noten/11.2 Kann Schule neutral sein - Violoncello.pdf"
+    ],
+    "audio": [
+      "audio/11.2 Kann Schule neutral sein.mp3"
     ]
   },
   "12": {
@@ -203,10 +201,6 @@
     "noten": [
       "noten/14 Finale - Partitur.pdf",
       "noten/14 Finale - Piano.pdf"
-    ],
-    "audio": [
-      "audio/14 Finale - Choral.mp3",
-      "audio/14 Finale - Vorspiel.mp3"
     ]
   }
 }
