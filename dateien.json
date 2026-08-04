@@ -115,45 +115,88 @@
       "noten/6.1 Irgendwo auf der Welt.pdf"
     ]
   },
-  "09": {
+  "8.1": {
     "noten": [
-      "noten/09 - Miriam, Anna, Gabriel & Querbeets - 9.1 Bin ich allein-.pdf"
+      "noten/8.1 Gavotte Cembalo.pdf",
+      "noten/8.1 Gavotte Clash-Becken.pdf",
+      "noten/8.1 Gavotte Große Trommel.pdf",
+      "noten/8.1 Gavotte Kontrabass.pdf",
+      "noten/8.1 Gavotte Partitur.pdf",
+      "noten/8.1 Gavotte Pauken.pdf",
+      "noten/8.1 Gavotte Viola.pdf",
+      "noten/8.1 Gavotte Violine I.pdf",
+      "noten/8.1 Gavotte Violine II.pdf",
+      "noten/8.1 Gavotte Violoncello.pdf"
+    ],
+    "audio": [
+      "audio/8.1 Gavotte.mp3"
     ]
   },
   "9.1": {
     "noten": [
-      "noten/9.1 Bin ich allein- - Miriam, Anna, Gabriel & Querbeets.pdf",
-      "noten/9.1 Bin ich allein- - Partitur.pdf"
+      "noten/9.1 Bin ich allein- Miriam, Anna, Gabriel & Querbeets.pdf",
+      "noten/9.1 Bin ich allein- Partitur.pdf"
     ],
     "audio": [
       "audio/9.1 Bin ich allein.mp3"
     ]
   },
-  "11.1": {
+  "11.2": {
     "noten": [
-      "noten/11.1 Gavotte Cembalo.pdf",
-      "noten/11.1 Gavotte Clash-Becken.pdf",
-      "noten/11.1 Gavotte Große Trommel.pdf",
-      "noten/11.1 Gavotte Kontrabass.pdf",
-      "noten/11.1 Gavotte Partitur.pdf",
-      "noten/11.1 Gavotte Pauken.pdf",
-      "noten/11.1 Gavotte Viola.pdf",
-      "noten/11.1 Gavotte Violine I.pdf",
-      "noten/11.1 Gavotte Violine II.pdf",
-      "noten/11.1 Gavotte Violoncello.pdf"
-    ],
-    "audio": [
-      "audio/11.1 Gavotte.mp3"
+      "noten/11.2 Kann Schule neutral sein - Alt.pdf",
+      "noten/11.2 Kann Schule neutral sein - Altsaxophon.pdf",
+      "noten/11.2 Kann Schule neutral sein - Bass.pdf",
+      "noten/11.2 Kann Schule neutral sein - Bassgitarre.pdf",
+      "noten/11.2 Kann Schule neutral sein - Bassposaune.pdf",
+      "noten/11.2 Kann Schule neutral sein - Clarinet (Bb) 1.pdf",
+      "noten/11.2 Kann Schule neutral sein - Clarinet (Bb) 2.pdf",
+      "noten/11.2 Kann Schule neutral sein - Clash-Becken.pdf",
+      "noten/11.2 Kann Schule neutral sein - Fagott.pdf",
+      "noten/11.2 Kann Schule neutral sein - Flöte 1.pdf",
+      "noten/11.2 Kann Schule neutral sein - Flöte 2.pdf",
+      "noten/11.2 Kann Schule neutral sein - Gitarre.pdf",
+      "noten/11.2 Kann Schule neutral sein - Glockenspiel.pdf",
+      "noten/11.2 Kann Schule neutral sein - Große Trommel.pdf",
+      "noten/11.2 Kann Schule neutral sein - Horn (F) 1.pdf",
+      "noten/11.2 Kann Schule neutral sein - Horn (F) 2.pdf",
+      "noten/11.2 Kann Schule neutral sein - Horn (F) 3.pdf",
+      "noten/11.2 Kann Schule neutral sein - Horn (F) 4.pdf",
+      "noten/11.2 Kann Schule neutral sein - Klavier & Cembalo.pdf",
+      "noten/11.2 Kann Schule neutral sein - Kontrabass.pdf",
+      "noten/11.2 Kann Schule neutral sein - Oboe 1.pdf",
+      "noten/11.2 Kann Schule neutral sein - Oboe 2.pdf",
+      "noten/11.2 Kann Schule neutral sein - Partitur.pdf",
+      "noten/11.2 Kann Schule neutral sein - Pauken.pdf",
+      "noten/11.2 Kann Schule neutral sein - Posaune 1.pdf",
+      "noten/11.2 Kann Schule neutral sein - Posaune 2.pdf",
+      "noten/11.2 Kann Schule neutral sein - Schlagzeug.pdf",
+      "noten/11.2 Kann Schule neutral sein - Solo.pdf",
+      "noten/11.2 Kann Schule neutral sein - Sopran.pdf",
+      "noten/11.2 Kann Schule neutral sein - Spieler ohne Instrument.pdf",
+      "noten/11.2 Kann Schule neutral sein - Tamtam.pdf",
+      "noten/11.2 Kann Schule neutral sein - Tenor.pdf",
+      "noten/11.2 Kann Schule neutral sein - Tomtoms.pdf",
+      "noten/11.2 Kann Schule neutral sein - Trompete (Bb) 2.pdf",
+      "noten/11.2 Kann Schule neutral sein - Trompete (Bb) 3.pdf",
+      "noten/11.2 Kann Schule neutral sein - Trumpet (Bb) 1.pdf",
+      "noten/11.2 Kann Schule neutral sein - Tuba.pdf",
+      "noten/11.2 Kann Schule neutral sein - Viola.pdf",
+      "noten/11.2 Kann Schule neutral sein - Violine I.pdf",
+      "noten/11.2 Kann Schule neutral sein - Violine II.pdf",
+      "noten/11.2 Kann Schule neutral sein - Violoncello.pdf"
     ]
   },
-  "12.2": {
-    "audio": [
-      "audio/12.2 Kann Schule neutral sein.mp3"
+  "12": {
+    "noten": [
+      "noten/12a.2 Mach End o Herr mach Ende.pdf"
     ]
   },
   "13": {
     "noten": [
-      "noten/13a.2 Mach End o Herr mach Ende.pdf"
+      "noten/13 Finale - Partitur.pdf"
+    ],
+    "audio": [
+      "audio/13 Finale.mp3"
     ]
   },
   "14": {
