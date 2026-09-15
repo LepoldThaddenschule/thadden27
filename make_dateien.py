@@ -116,6 +116,7 @@ import csv
 import sys
 import json
 import shutil
+import tempfile
 import subprocess
 
 # Windows-Konsolen benutzen oft NICHT UTF-8 als Codepage. Ohne diesen
@@ -522,33 +523,48 @@ def copy_file(src_path, dest_dir, filename):
     meldet den Fehler und zählt ihn für die Abschluss-Zusammenfassung.
 
     WICHTIG - Schutz vor Datenverlust im Quellordner:
-    shutil.copy2() öffnet die Zieldatei zum Schreiben (und LEERT sie damit
-    sofort), bevor überhaupt aus der Quelle gelesen wird. Wenn Quelle und
-    Ziel versehentlich dieselbe Datei sind (z.B. weil SOURCE_DIR/DEST_DIR
-    sich überschneiden), würde das den Inhalt der Original-Datei im
-    Quellordner zerstören - obwohl das Script eigentlich nur kopiert, nie
-    in den Quellordner schreibt. Deshalb wird hier NICHT nur der reine
-    Pfad-Text verglichen (kann z.B. unter Windows bei Groß-/Kleinschreibung
-    danebenliegen), sondern zusätzlich mit os.path.samefile() geprüft, ob
-    es sich um dieselbe Datei auf der Festplatte handelt (funktioniert auch
-    bei unterschiedlicher Schreibweise, Symlinks/Junctions etc.).
+    Ein normales shutil.copy2(quelle, ziel) öffnet die Zieldatei zum
+    Schreiben (und LEERT sie damit sofort), bevor überhaupt zuende aus der
+    Quelle gelesen wurde. Sollten Quelle und Ziel durch irgendeinen Pfad-
+    Sonderfall (Groß-/Kleinschreibung, OneDrive-Verknüpfung/Reparse-Point,
+    Ordner-Überschneidung, o.ä.) auf dieselbe Datei zeigen, ginge dadurch
+    der Original-Inhalt verloren - obwohl das Script eigentlich nur
+    kopiert, nie in den Quellordner schreibt.
+    Deshalb wird hier NIE direkt in "dest_path" geschrieben: Es wird immer
+    zuerst eine NEUE, garantiert noch nicht existierende Temp-Datei im
+    Zielordner befüllt (kann also unmöglich mit der Quelle identisch
+    sein) und erst danach in einem einzigen atomaren Schritt (os.replace)
+    auf den echten Zielnamen "umbenannt". Selbst falls Quelle und Ziel
+    sich (aus welchem Grund auch immer) doch als dieselbe Datei
+    herausstellen sollten, bleibt der Inhalt dadurch garantiert erhalten -
+    es wird schlimmstenfalls die Originaldatei mit einer 1:1-Kopie ihres
+    eigenen Inhalts überschrieben, aber niemals geleert.
     """
     try:
         os.makedirs(dest_dir, exist_ok=True)
         dest_path = os.path.join(dest_dir, filename)
+        already_existed = os.path.exists(dest_path)
 
-        if os.path.normcase(os.path.abspath(src_path)) == os.path.normcase(os.path.abspath(dest_path)):
-            return
+        tmp_fd, tmp_path = tempfile.mkstemp(
+            dir=dest_dir, prefix=".tmp_kopie_", suffix=os.path.splitext(filename)[1]
+        )
         try:
-            if os.path.exists(dest_path) and os.path.samefile(src_path, dest_path):
-                return
-        except OSError:
-            pass
+            with open(src_path, "rb") as fsrc, os.fdopen(tmp_fd, "wb") as ftmp:
+                shutil.copyfileobj(fsrc, ftmp)
+            try:
+                shutil.copystat(src_path, tmp_path)
+            except OSError:
+                pass  # Zeitstempel/Rechte kopieren ist "nice to have", kein Abbruchgrund
 
-        if os.path.exists(dest_path):
-            print(f"     * überschreibe vorhandene Datei im Zielordner: {filename}")
-
-        shutil.copy2(src_path, dest_path)
+            if already_existed:
+                print(f"     * überschreibe vorhandene Datei im Zielordner: {filename}")
+            os.replace(tmp_path, dest_path)
+        except Exception:
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            raise
     except OSError as e:
         STATS["copy_errors"] += 1
         print(f"     [FEHLER] Fehler beim Kopieren von '{filename}': {e}")
