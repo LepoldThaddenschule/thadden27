@@ -781,13 +781,19 @@ def find_orphans(out_dir, source_filenames, extension):
     Gibt [] zurück, wenn source_filenames None ist (siehe collect_noten)
     oder out_dir noch gar nicht existiert - dann lässt sich nichts
     Verlässliches über "verwaist" aussagen, also lieber nichts vorschlagen.
+
+    Dateien aus IGNORE_FILENAMES werden nie als "verwaist" gemeldet (und
+    das Script fragt deshalb auch nie nach, ob sie gelöscht werden sollen)
+    - sie werden ja absichtlich nicht aus der Quelle nachverfolgt, siehe
+    collect_audio()/collect_flat_folder().
     """
     if source_filenames is None or not os.path.isdir(out_dir):
         return []
     orphans = []
     for f in sorted(os.scandir(out_dir), key=lambda x: x.name.lower()):
         if f.is_file() and f.name.lower().endswith(extension) \
-                and f.name not in source_filenames:
+                and f.name not in source_filenames \
+                and f.name.lower() not in _IGNORE_FILENAMES_LOWER:
             orphans.append(f.name)
     return orphans
 
