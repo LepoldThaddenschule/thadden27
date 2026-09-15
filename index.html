@@ -161,6 +161,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-si
 .audio-nm{font-size:11.5px;font-weight:500;color:var(--tx-mid);flex:1;}
 audio{width:100%;height:36px;border-radius:4px;display:block;}
 .file-empty{font-size:12px;color:var(--tx-dim);padding:4px 0 8px;}
+.desc-item{margin-bottom:6px;}.desc-item:last-child{margin-bottom:0;}
+.desc-text{font-family:'Inter',sans-serif;font-size:13px;line-height:1.65;color:var(--tx-mid);white-space:pre-wrap;}
+.desc-dl{display:inline-block;margin-top:6px;font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;}
+.desc-dl:hover{text-decoration:underline;}
 .dl-all-btn{display:inline-flex;align-items:center;gap:6px;background:var(--acc);border:none;border-radius:5px;padding:7px 14px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:#fff;cursor:pointer;margin-top:6px;transition:background .12s;}
 .dl-all-btn:hover{background:var(--acc-lt);}
 .dl-all-btn:disabled{opacity:.5;cursor:not-allowed;}
@@ -285,6 +289,7 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
     </div>
     <div id="file-filter-block">
       <div class="sb-lbl">Dateien</div>
+      <button class="ff-btn" id="ff-txt" onclick="toggleFileFilter('txt')">Beschreibung vorhanden 📄🪶<span class="ff-chk" id="ff-txt-chk"></span></button>
       <button class="ff-btn" id="ff-pdf" onclick="toggleFileFilter('pdf')">Noten vorhanden 🎻<span class="ff-chk" id="ff-pdf-chk"></span></button>
       <button class="ff-btn" id="ff-mp3" onclick="toggleFileFilter('mp3')">Audio vorhanden 🎵<span class="ff-chk" id="ff-mp3-chk"></span></button>
     </div>
@@ -326,40 +331,38 @@ var GH_REPO='thadden27';
 var GH_BRANCH='main';
 var _currentDetail=null;
 var PAL=[{bg:'#dce8f5',bd:'#4a7fb5',tx:'#0f3460'},{bg:'#daf0e4',bd:'#4aab73',tx:'#0f4a2a'},{bg:'#f5dce8',bd:'#b54a7f',tx:'#60113a'},{bg:'#f5f0dc',bd:'#b5934a',tx:'#60430f'},{bg:'#ecdcf5',bd:'#8f4ab5',tx:'#3d1160'},{bg:'#f5e4dc',bd:'#b5694a',tx:'#602610'},{bg:'#dcf5f5',bd:'#4ab5b5',tx:'#0f4a4a'},{bg:'#f0f5dc',bd:'#95b54a',tx:'#3a4a10'},{bg:'#f5dcf5',bd:'#b54ab5',tx:'#5a1160'},{bg:'#dcf5ec',bd:'#4ab58f',tx:'#0f4a35'},{bg:'#f0dcf5',bd:'#9f4ab5',tx:'#44116a'},{bg:'#f5dcdc',bd:'#b54a4a',tx:'#601111'},{bg:'#dce8f0',bd:'#4a8fb5',tx:'#0f3d5a'},{bg:'#f5f5dc',bd:'#aaaa4a',tx:'#484810'},{bg:'#dce4dc',bd:'#6a8f6a',tx:'#1f4a1f'}];
-var S={ensembles:[],tree:[],colorMap:{},leitungen:[],sel:[],zf:'alle',lf:null,ff:{pdf:false,mp3:false},files:{}};
+var S={ensembles:[],tree:[],colorMap:{},leitungen:[],sel:[],zf:'alle',lf:null,ff:{pdf:false,mp3:false,txt:false},files:{}};
 
-function gf(sid){if(!S.files[sid])S.files[sid]={noten:[],audio:[]};return S.files[sid];}
-function hasFiles(sid){var f=gf(sid);return{pdf:f.noten.length>0,mp3:f.audio.length>0};}
+function gf(sid){if(!S.files[sid])S.files[sid]={noten:[],audio:[],txt:[]};return S.files[sid];}
+function hasFiles(sid){var f=gf(sid);return{pdf:f.noten.length>0,mp3:f.audio.length>0,txt:f.txt.length>0};}
 function allIds(sc){var ids=[sc.id];if(sc.sub)for(var i=0;i<sc.sub.length;i++)ids=ids.concat(allIds(sc.sub[i]));return ids;}
-function anyFiles(sc){var ids=allIds(sc),pdf=false,mp3=false;for(var i=0;i<ids.length;i++){var h=hasFiles(ids[i]);if(h.pdf)pdf=true;if(h.mp3)mp3=true;}return{pdf:pdf,mp3:mp3};}
+function anyFiles(sc){var ids=allIds(sc),pdf=false,mp3=false,txt=false;for(var i=0;i<ids.length;i++){var h=hasFiles(ids[i]);if(h.pdf)pdf=true;if(h.mp3)mp3=true;if(h.txt)txt=true;}return{pdf:pdf,mp3:mp3,txt:txt};}
+function scrollToSection(id,cls){
+  showDetail(id);
+  setTimeout(function(){
+    var el=document.querySelector('#files-section-'+id+' .'+cls);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },120);
+}
 function mkBadges(sc){
-  var af=anyFiles(sc);if(!af.pdf&&!af.mp3)return null;
+  var af=anyFiles(sc);if(!af.pdf&&!af.mp3&&!af.txt)return null;
   var w=document.createElement('div');w.className='file-badges';
+  if(af.txt){
+    var b0=document.createElement('span');b0.className='fbadge fbadge-link';
+    b0.title='Beschreibung anzeigen';b0.textContent='\uD83D\uDCC4\uD83E\uDEB6';
+    b0.onclick=(function(id){return function(e){e.stopPropagation();scrollToSection(id,'sec-desc');};})(sc.id);
+    w.appendChild(b0);
+  }
   if(af.pdf){
     var b=document.createElement('span');b.className='fbadge fbadge-link';
     b.title='Noten anzeigen';b.textContent='\uD83C\uDFBB';
-    b.onclick=(function(id){return function(e){
-      e.stopPropagation();
-      showDetail(id);
-      setTimeout(function(){
-        var secs=document.querySelectorAll('#files-section-'+id+' .sec-h');
-        if(secs.length>1)secs[1].scrollIntoView({behavior:'smooth',block:'start'});
-        else if(secs.length>0)secs[0].scrollIntoView({behavior:'smooth',block:'start'});
-      },120);
-    };})(sc.id);
+    b.onclick=(function(id){return function(e){e.stopPropagation();scrollToSection(id,'sec-noten');};})(sc.id);
     w.appendChild(b);
   }
   if(af.mp3){
     var b2=document.createElement('span');b2.className='fbadge fbadge-link';
     b2.title='Audio anzeigen';b2.textContent='\uD83C\uDFB5';
-    b2.onclick=(function(id){return function(e){
-      e.stopPropagation();
-      showDetail(id);
-      setTimeout(function(){
-        var secs=document.querySelectorAll('#files-section-'+id+' .sec-h');
-        if(secs.length>0)secs[0].scrollIntoView({behavior:'smooth',block:'start'});
-      },120);
-    };})(sc.id);
+    b2.onclick=(function(id){return function(e){e.stopPropagation();scrollToSection(id,'sec-audio');};})(sc.id);
     w.appendChild(b2);
   }
   return w;
@@ -415,6 +418,10 @@ function loadManifest(){
       if(e.audio){
         e.audio.forEach(function(path){addManifestFile(f.audio,path);});
       }
+
+      if(e.txt){
+        e.txt.forEach(function(path){addManifestFile(f.txt,path);});
+      }
     }
     render();
     if(_currentDetail){
@@ -459,7 +466,7 @@ function matchSc(sc){if(allSel())return true;var a=gatherE(sc);for(var i=0;i<S.s
 function matchDr(list){if(allSel())return true;for(var i=0;i<S.sel.length;i++)if(list.indexOf(S.sel[i])>=0)return true;return false;}
 function zMatch(sc){return S.zf==='alle'||sc.zeit===S.zf||sc.zeit==='alle';}
 function lMD(sc){if(!S.lf)return true;if(sc.leitung===S.lf)return true;if(sc.sub)for(var i=0;i<sc.sub.length;i++){if(lMD(sc.sub[i]))return true;}return false;}
-function fileMatch(sc){if(!S.ff.pdf&&!S.ff.mp3)return true;var f=anyFiles(sc);if(S.ff.pdf&&!f.pdf)return false; if(S.ff.mp3&&!f.mp3)return false;return true;}
+function fileMatch(sc){if(!S.ff.pdf&&!S.ff.mp3&&!S.ff.txt)return true;var f=anyFiles(sc);if(S.ff.pdf&&!f.pdf)return false; if(S.ff.mp3&&!f.mp3)return false;if(S.ff.txt&&!f.txt)return false;return true;}
 function toggleFileFilter(type){S.ff[type]=!S.ff[type];var btn=document.getElementById('ff-'+type);if(btn)btn.classList.toggle('on',S.ff[type]);var chk=document.getElementById('ff-'+type+'-chk');if(chk)chk.textContent=S.ff[type]?'\u2713':'';render();}
 function render(){rSB();rLeit();rList();rFBar();}
 function rSB(){var el=document.getElementById('ens-list'),ab=document.getElementById('alle-btn');el.innerHTML='';if(!S.ensembles.length){el.innerHTML='<div style="padding:16px 18px;font-size:12px;color:var(--tx-dim);line-height:1.7;">Wird geladen\u2026</div>';return;}if(allSel())ab.classList.add('on');else ab.classList.remove('on');for(var i=0;i<S.ensembles.length;i++){var e=S.ensembles[i],isOn=S.sel.indexOf(e.name)>=0;var btn=document.createElement('button');btn.className='ens-btn'+(isOn?' on':'');btn.style.borderLeftColor=isOn?e.color.bd:'transparent';btn.style.background=isOn?e.color.bg:'';btn.onclick=(function(n){return function(){togEns(n);};})(e.name);var dot=document.createElement('span');dot.className='ens-dot';dot.style.background=e.color.bd;btn.appendChild(dot);btn.appendChild(document.createTextNode(e.name));var chk=document.createElement('span');chk.className='chk';if(isOn){chk.textContent='\u2713';}btn.appendChild(chk);el.appendChild(btn);}}
@@ -473,7 +480,23 @@ function aSVG(){return'<svg width="10" height="10" viewBox="0 0 10 10" fill="non
 function findSc(id,nodes){for(var i=0;i<nodes.length;i++){if(nodes[i].id===id)return nodes[i];if(nodes[i].sub&&nodes[i].sub.length){var f=findSc(id,nodes[i].sub);if(f)return f;}}return null;}
 function showDetail(id,noHistory){var sc=findSc(id,S.tree);if(!sc)return;_currentDetail=id;if(!noHistory)history.pushState({view:'detail',id:id},'',location.pathname+'?szene='+encodeURIComponent(id));document.getElementById('vlist').style.display='none';document.getElementById('vdetail').style.display='flex';document.getElementById('btn-col').style.display='none';document.getElementById('btn-exp').style.display='none';var dc=document.getElementById('dcontent');dc.innerHTML='';var back=document.createElement('button');back.className='back-btn';back.textContent='\u2190 Zur\xfcck';back.onclick=showList;dc.appendChild(back);var dh=document.createElement('div');dh.className='dheader';dh.innerHTML='<div class="dnum">Szene '+esc(sc.id)+'</div><div class="dtitle">'+esc(sc.name)+'</div>';var dmeta=document.createElement('div');dmeta.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;';if(sc.zeit&&sc.zeit!=='alle'){var pp=document.createElement('span');pp.className='zpill '+sc.zeit;pp.textContent=sc.zeit==='vergangenheit'?'Vergangenheit':'Gegenwart';dmeta.appendChild(pp);}if(sc.leitung){var dl=document.createElement('span');dl.className='leit-detail';dl.innerHTML='\u266a <strong>Mus. Leitung:</strong>\u00a0'+esc(sc.leitung);dmeta.appendChild(dl);}if(dmeta.children.length)dh.appendChild(dmeta);dc.appendChild(dh);if(sc.sub&&sc.sub.length){var sh=document.createElement('div');sh.className='sec-h';sh.textContent='Unterszenen';dc.appendChild(sh);for(var i=0;i<sc.sub.length;i++){var sub=sc.sub[i];var item=document.createElement('div');item.className='dsub';item.onclick=(function(id){return function(){showDetail(id);};})(sub.id);var sn=document.createElement('span');sn.className='dsub-num';sn.textContent=sub.id;item.appendChild(sn);var snm=document.createElement('span');snm.className='dsub-name';snm.textContent=sub.name;item.appendChild(snm);if(sub.leitung){var lt4=document.createElement('span');lt4.className='leit-tag';lt4.style.marginLeft='4px';lt4.textContent='\u266a\u00a0'+sub.leitung;item.appendChild(lt4);}var sarr=document.createElement('span');sarr.style.color='var(--tx-dim)';sarr.textContent=' \u203a';item.appendChild(sarr);dc.appendChild(item);}}if(sc.ensembles.length){var sh2=document.createElement('div');sh2.className='sec-h';sh2.textContent='Beteiligte Ensembles';dc.appendChild(sh2);var tg=document.createElement('div');tg.className='etags';tg.style.marginBottom='6px';mkTags(tg,sc.ensembles);dc.appendChild(tg);}dc.appendChild(mkFileSection(sc.id));}
 function mkFileSection(sid){var wrap=document.createElement('div');wrap.id='files-section-'+sid;
-var sh2=document.createElement('div');sh2.className='sec-h';sh2.textContent='Audio';wrap.appendChild(sh2);var card2=document.createElement('div');card2.className='file-card';var ch=document.createElement('div');ch.className='file-card-head';ch.textContent='\uD83C\uDFB5 Audiodateien';card2.appendChild(ch);var bod2=document.createElement('div');bod2.className='file-card-body';var mp3s=gf(sid).audio;if(mp3s.length){mp3s.forEach(function(m){var item=document.createElement('div');item.className='audio-item';var top=document.createElement('div');top.className='audio-top';var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';dl.rel='noopener';dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;';dl.textContent='\u2193 Download';top.appendChild(dl);item.appendChild(top);var pl=document.createElement('audio');
+var sh0=document.createElement('div');sh0.className='sec-h sec-desc';sh0.textContent='Beschreibung';wrap.appendChild(sh0);
+var card0=document.createElement('div');card0.className='file-card';
+var bod0=document.createElement('div');bod0.className='file-card-body';
+var txts=gf(sid).txt;
+if(txts.length){
+  txts.forEach(function(t){
+    var item=document.createElement('div');item.className='desc-item';
+    var body=document.createElement('div');body.className='desc-text';body.textContent='Lädt…';
+    item.appendChild(body);
+    var dl=document.createElement('a');dl.className='desc-dl';dl.href=t.url;dl.target='_blank';dl.rel='noopener';dl.textContent='↓ '+t.name;
+    item.appendChild(dl);
+    bod0.appendChild(item);
+    fetch(t.url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(txt){body.textContent=txt.trim();}).catch(function(){body.textContent='(Beschreibung konnte nicht geladen werden.)';body.style.color='var(--tx-dim)';});
+  });
+}else{var em0=document.createElement('div');em0.className='file-empty';em0.textContent='Noch keine Beschreibung.';bod0.appendChild(em0);}
+card0.appendChild(bod0);wrap.appendChild(card0);
+var sh2=document.createElement('div');sh2.className='sec-h sec-audio';sh2.textContent='Audio';wrap.appendChild(sh2);var card2=document.createElement('div');card2.className='file-card';var ch=document.createElement('div');ch.className='file-card-head';ch.textContent='\uD83C\uDFB5 Audiodateien';card2.appendChild(ch);var bod2=document.createElement('div');bod2.className='file-card-body';var mp3s=gf(sid).audio;if(mp3s.length){mp3s.forEach(function(m){var item=document.createElement('div');item.className='audio-item';var top=document.createElement('div');top.className='audio-top';var nm=document.createElement('span');nm.className='audio-nm';nm.textContent=m.name;top.appendChild(nm);var dl=document.createElement('a');dl.href=m.url;dl.setAttribute('download',m.name);dl.target='_blank';dl.rel='noopener';dl.style.cssText='font-size:10.5px;color:var(--acc);text-decoration:none;font-weight:500;';dl.textContent='\u2193 Download';top.appendChild(dl);item.appendChild(top);var pl=document.createElement('audio');
 pl.controls=true;
 pl.preload='metadata';
 var ext=(m.url.split('?')[0].split('.').pop()||'mp3').toLowerCase();
@@ -488,7 +511,7 @@ fb.innerHTML='Wenn der Player nicht lädt: <a href="'+m.url+'" target="_blank" s
 item.appendChild(pl);
 item.appendChild(fb);
 bod2.appendChild(item);});}else{var em2=document.createElement('div');em2.className='file-empty';em2.textContent='Noch keine Audiodateien.';bod2.appendChild(em2);}card2.appendChild(bod2);wrap.appendChild(card2);
-var sh=document.createElement('div');sh.className='sec-h';sh.textContent='Noten (PDF)';wrap.appendChild(sh);
+var sh=document.createElement('div');sh.className='sec-h sec-noten';sh.textContent='Noten (PDF)';wrap.appendChild(sh);
 var card=document.createElement('div');card.className='file-card';
 var bod=document.createElement('div');bod.className='file-card-body';
 var pdfs=gf(sid).noten;
@@ -544,7 +567,7 @@ function togEns(n){var i=S.sel.indexOf(n);if(i>=0)S.sel.splice(i,1);else S.sel.p
 function selAll(){S.sel=[];render();}
 function clearLeit(){S.lf=null;render();}
 function setLeit(name){S.lf=(S.lf===name)?null:name;render();}
-function clearAllFilters(){S.sel=[];S.lf=null;S.zf='alle';S.ff.pdf=false;S.ff.mp3=false;document.querySelectorAll('.zb').forEach(function(b){b.classList.remove('on');});document.querySelector('.zb[data-z="alle"]').classList.add('on');document.getElementById('ff-pdf')?.classList.remove('on');document.getElementById('ff-mp3')?.classList.remove('on');render();}
+function clearAllFilters(){S.sel=[];S.lf=null;S.zf='alle';S.ff.pdf=false;S.ff.mp3=false;S.ff.txt=false;document.querySelectorAll('.zb').forEach(function(b){b.classList.remove('on');});document.querySelector('.zb[data-z="alle"]').classList.add('on');document.getElementById('ff-pdf')?.classList.remove('on');document.getElementById('ff-mp3')?.classList.remove('on');document.getElementById('ff-txt')?.classList.remove('on');render();}
 function setZ(btn){
   var btns=document.querySelectorAll('.zb');
   for(var i=0;i<btns.length;i++){
@@ -555,7 +578,7 @@ function setZ(btn){
   var chk=btn.querySelector('.fil-chk');if(chk)chk.textContent='✓';
   S.zf=btn.getAttribute('data-z');render();
 }
-function rFBar(){var bar=document.getElementById('fbar'),ch=document.getElementById('fbar-chips');ch.innerHTML='';var hasF=!allSel()||S.lf||S.zf!=='alle'||S.ff.pdf||S.ff.mp3; if(hasF){bar.classList.add('on');for(var i=0;i<S.sel.length;i++){var c=document.createElement('span');c.className='fchip';c.textContent=S.sel[i];ch.appendChild(c);}if(S.lf){var lc=document.createElement('span');lc.className='fchip';lc.textContent='\u266a '+S.lf;ch.appendChild(lc);}if(S.zf!=='alle'){var zc=document.createElement('span');zc.className='fchip';zc.textContent=S.zf==='vergangenheit'?'Vergangenheit':'Gegenwart';ch.appendChild(zc);}if(S.ff.pdf){var pc=document.createElement('span');pc.className='fchip';pc.textContent='Noten vorhanden';ch.appendChild(pc);}if(S.ff.mp3){var ac=document.createElement('span');ac.className='fchip';ac.textContent='Audio vorhanden';ch.appendChild(ac);}}else bar.classList.remove('on');var ab=document.getElementById('alle-btn');if(ab){if(allSel())ab.classList.add('on');else ab.classList.remove('on');}}
+function rFBar(){var bar=document.getElementById('fbar'),ch=document.getElementById('fbar-chips');ch.innerHTML='';var hasF=!allSel()||S.lf||S.zf!=='alle'||S.ff.pdf||S.ff.mp3||S.ff.txt; if(hasF){bar.classList.add('on');for(var i=0;i<S.sel.length;i++){var c=document.createElement('span');c.className='fchip';c.textContent=S.sel[i];ch.appendChild(c);}if(S.lf){var lc=document.createElement('span');lc.className='fchip';lc.textContent='\u266a '+S.lf;ch.appendChild(lc);}if(S.zf!=='alle'){var zc=document.createElement('span');zc.className='fchip';zc.textContent=S.zf==='vergangenheit'?'Vergangenheit':'Gegenwart';ch.appendChild(zc);}if(S.ff.txt){var tc=document.createElement('span');tc.className='fchip';tc.textContent='Beschreibung vorhanden';ch.appendChild(tc);}if(S.ff.pdf){var pc=document.createElement('span');pc.className='fchip';pc.textContent='Noten vorhanden';ch.appendChild(pc);}if(S.ff.mp3){var ac=document.createElement('span');ac.className='fchip';ac.textContent='Audio vorhanden';ch.appendChild(ac);}}else bar.classList.remove('on');var ab=document.getElementById('alle-btn');if(ab){if(allSel())ab.classList.add('on');else ab.classList.remove('on');}}
 function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('mob-overlay').classList.add('on');}
 function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-overlay').classList.remove('on');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}

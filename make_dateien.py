@@ -28,9 +28,12 @@ QUELLORDNER (OneDrive) - VORHER:
   |---- Partien aus 1.1 Marsch/       <- MP3s, Szene-ID = 1.1
   |---- Partien aus 1.3 Nun will.../  <- MP3s, Szene-ID = 1.3
   |---- Partien aus 14 Finale/        <- MP3s, Szene-ID = 14
-  `---- pdf/                          <- alle PDFs
-      |---- 1.3 Nun will... - Flöte 1.pdf   <- Szene-ID = 1.3
-      `---- 14 Finale - Partitur.pdf        <- Szene-ID = 14
+  |---- pdf/                          <- alle PDFs
+  |   |---- 1.3 Nun will... - Flöte 1.pdf   <- Szene-ID = 1.3
+  |   `---- 14 Finale - Partitur.pdf        <- Szene-ID = 14
+  `---- TXT/                          <- alle Text-Dateien
+      |---- 1.3 Nun will... - Text.txt      <- Szene-ID = 1.3
+      `---- 14 Finale - Text.txt            <- Szene-ID = 14
 
 ZIELORDNER (Git-Repo) - NACHHER:
   thadden27/
@@ -38,7 +41,8 @@ ZIELORDNER (Git-Repo) - NACHHER:
   |                                    Unterordnern, hierher kopiert (flach,
   |                                    ohne Unterordner)
   |---- noten/                        <- alle PDFs aus pdf/, hierher kopiert
-  `---- dateien.json                  <- verweist auf audio/... und noten/...
+  |---- TXT/                          <- alle TXT-Dateien aus TXT/, hierher kopiert
+  `---- dateien.json                  <- verweist auf audio/..., noten/... und TXT/...
 
 Die Original-Dateien im Quellordner (OneDrive) bleiben dabei unangetastet
 - es wird kopiert, nicht verschoben/gelöscht. Wenn zwei MP3s aus
@@ -89,9 +93,11 @@ ANPASSEN:
     sich das automatisch an, egal wie der OneDrive-Ordner genau heißt
     oder wer angemeldet ist.
   - PDF_FOLDER: Name des PDF-Unterordners in SOURCE_DIR
+  - TXT_FOLDER: Name des TXT-Unterordners in SOURCE_DIR
   - PARTIEN_PREFIX: Anfang der Audio-Unterordnernamen in SOURCE_DIR
-  - GITHUB_AUDIO_PATH / GITHUB_NOTEN_PATH: Namen der Zielordner in
-    DEST_DIR (gleichzeitig die Pfade, wie sie in dateien.json stehen)
+  - GITHUB_AUDIO_PATH / GITHUB_NOTEN_PATH / GITHUB_TXT_PATH: Namen der
+    Zielordner in DEST_DIR (gleichzeitig die Pfade, wie sie in
+    dateien.json stehen)
   - GIT_AUTO_COMMIT_PUSH: auf False setzen, um den Commit/Push-Teil
     komplett zu deaktivieren (dann wird nur kopiert + dateien.json
     geschrieben, wie bisher)
@@ -195,16 +201,19 @@ else:
 
 # Lokale Ordnernamen (innerhalb SOURCE_DIR)
 PDF_FOLDER     = "pdf"           # Ordner mit allen PDF-Dateien
+TXT_FOLDER     = "TXT"           # Ordner mit allen TXT-Dateien
 PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
 
 # Namen der Zielordner in DEST_DIR - gleichzeitig die Pfade, wie sie in
 # der dateien.json stehen sollen (z.B. "audio/1.1 Marsch.mp3")
 GITHUB_AUDIO_PATH = "audio"
 GITHUB_NOTEN_PATH = "noten"
+GITHUB_TXT_PATH   = "TXT"
 
 # Vollständige lokale Zielpfade, in die tatsächlich kopiert wird
 AUDIO_OUT_DIR = os.path.join(DEST_DIR, GITHUB_AUDIO_PATH)
 NOTEN_OUT_DIR = os.path.join(DEST_DIR, GITHUB_NOTEN_PATH)
+TXT_OUT_DIR   = os.path.join(DEST_DIR, GITHUB_TXT_PATH)
 
 # Ausgabedatei (liegt im Ziel-Ordner, direkt neben audio/ und noten/)
 OUTPUT_FILE = os.path.join(DEST_DIR, "dateien.json")
@@ -574,66 +583,90 @@ def collect_audio(valid_ids):
     return result, source_filenames, unassigned
 
 
-def collect_noten(valid_ids):
+def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix,
+                         valid_ids, label):
     """
-    Sucht PDFs im "pdf"-Unterordner von SOURCE_DIR und kopiert ALLE nach
-    NOTEN_OUT_DIR - auch die, die keinem gültigen Abschnitt zugeordnet
-    werden können (siehe collect_audio für die Logik von valid_ids).
+    Generische Variante für einen FLACHEN Quell-Unterordner (keine weiteren
+    Unterordner darin) mit einem bestimmten Dateityp - wird sowohl für
+    Noten (PDF) als auch für Text-Dateien (TXT) benutzt. Kopiert ALLE
+    passenden Dateien nach out_dir - auch die, die keinem gültigen
+    Abschnitt zugeordnet werden können (siehe collect_audio für die Logik
+    von valid_ids).
+
+    source_subfolder   = Name des Unterordners in SOURCE_DIR (z.B. "pdf", "TXT")
+    extension           = Dateiendung, klein geschrieben, mit Punkt (z.B. ".pdf")
+    out_dir             = lokaler Zielordner, in den kopiert wird
+    github_path_prefix  = Prefix für den Pfad in dateien.json (z.B. "noten")
+    valid_ids           = siehe collect_audio()
+    label               = Text für Konsolenausgaben (z.B. "Noten", "TXT")
 
     Gibt zurück:
       (result, source_filenames, unassigned)
-      result           = {szene_id: ["noten/dateiname.pdf", ...], ...}
-      source_filenames = set aller PDF-Dateinamen im "pdf"-Ordner, oder
-                         None, falls der "pdf"-Ordner gar nicht existiert
-                         (dann lässt sich nicht verlässlich sagen, was
-                         "verwaist" ist - siehe find_orphans()).
-      unassigned       = Liste von PDF-Dateinamen ohne gültigen Abschnitt
+      result           = {szene_id: ["<prefix>/dateiname.ext", ...], ...}
+      source_filenames = set aller passenden Dateinamen im Quell-
+                         Unterordner, oder None, falls dieser Unterordner
+                         gar nicht existiert (dann lässt sich nicht
+                         verlässlich sagen, was "verwaist" ist - siehe
+                         find_orphans()).
+      unassigned       = Liste von Dateinamen ohne gültigen Abschnitt
                          (werden trotzdem kopiert, aber nicht in
                          dateien.json aufgenommen).
     """
     result = {}
-    pdf_dir = os.path.join(SOURCE_DIR, PDF_FOLDER)
+    src_dir = os.path.join(SOURCE_DIR, source_subfolder)
 
-    if not os.path.isdir(pdf_dir):
-        print(f"  [WARNUNG]  Kein '{PDF_FOLDER}'-Ordner gefunden - keine Noten.")
+    if not os.path.isdir(src_dir):
+        print(f"  [WARNUNG]  Kein '{source_subfolder}'-Ordner gefunden - keine {label}-Dateien.")
         return result, None, []
 
     source_filenames = set()
     unassigned = []
 
-    for f in sorted(os.scandir(pdf_dir), key=lambda x: x.name.lower()):
+    for f in sorted(os.scandir(src_dir), key=lambda x: x.name.lower()):
         if not f.is_file():
             continue
-        if not f.name.lower().endswith('.pdf'):
+        if not f.name.lower().endswith(extension):
             continue
 
         source_filenames.add(f.name)
-        copy_file(f.path, NOTEN_OUT_DIR, f.name)
+        copy_file(f.path, out_dir, f.name)
 
         sid = extract_scene_id(f.name)
         sid_ok = sid is not None and (not valid_ids or sid in valid_ids)
 
         if not sid_ok:
             if sid is None:
-                print(f"  [WARNUNG]  PDF ohne erkennbare ID (wird trotzdem kopiert): {f.name}")
+                print(f"  [WARNUNG]  {label}-Datei ohne erkennbare ID (wird trotzdem kopiert): {f.name}")
             else:
                 print(f"  [WARNUNG]  Abschnitt '{sid}' nicht in besetzung.csv - '{f.name}' wird")
                 print("     trotzdem kopiert, aber nicht in dateien.json aufgenommen.")
             unassigned.append(f.name)
             continue
 
-        github_path = f"{GITHUB_NOTEN_PATH}/{f.name}"
+        github_path = f"{github_path_prefix}/{f.name}"
         if sid not in result:
             result[sid] = []
         result[sid].append(github_path)
-        print(f"  [Noten] {sid}: {f.name}")
+        print(f"  [{label}] {sid}: {f.name}")
 
     return result, source_filenames, unassigned
 
 
-def report_unassigned(unassigned_audio, unassigned_noten):
+def collect_noten(valid_ids):
+    """Sucht PDFs in PDF_FOLDER und kopiert sie nach NOTEN_OUT_DIR (siehe collect_flat_folder)."""
+    return collect_flat_folder(PDF_FOLDER, '.pdf', NOTEN_OUT_DIR, GITHUB_NOTEN_PATH,
+                                valid_ids, "Noten")
+
+
+def collect_txt(valid_ids):
+    """Sucht TXT-Dateien in TXT_FOLDER und kopiert sie nach TXT_OUT_DIR (siehe collect_flat_folder)."""
+    return collect_flat_folder(TXT_FOLDER, '.txt', TXT_OUT_DIR, GITHUB_TXT_PATH,
+                                valid_ids, "TXT")
+
+
+def report_unassigned(unassigned_audio, unassigned_noten, unassigned_txt):
     """
-    Zeigt MP3s/PDFs im Quellordner an, die keinem Abschnitt (keiner
+    Zeigt MP3s/PDFs/TXTs im Quellordner an, die keinem Abschnitt (keiner
     erkennbaren Szenen-ID) zugeordnet werden konnten und deshalb NICHT
     mit kopiert/in dateien.json aufgenommen wurden. Wartet danach auf
     [Enter], um die Liste zu bestätigen (reine Anzeige, es wird nichts
@@ -641,9 +674,9 @@ def report_unassigned(unassigned_audio, unassigned_noten):
     """
     print(f"\n-- Nicht zugeordnete Dateien ---------------------------")
 
-    if not unassigned_audio and not unassigned_noten:
-        print("  [OK] Alle MP3s und PDFs im Quellordner konnten einem")
-        print("    Abschnitt zugeordnet werden.")
+    if not unassigned_audio and not unassigned_noten and not unassigned_txt:
+        print("  [OK] Alle MP3s, PDFs und TXT-Dateien im Quellordner konnten")
+        print("    einem Abschnitt zugeordnet werden.")
         return
 
     if unassigned_audio:
@@ -656,8 +689,13 @@ def report_unassigned(unassigned_audio, unassigned_noten):
         for name in unassigned_noten:
             print(f"    - {name}")
 
-    print("\n  Diese Dateien wurden trotzdem ganz normal nach audio/ bzw.")
-    print("  noten/ kopiert - sie tauchen nur NICHT in dateien.json auf.")
+    if unassigned_txt:
+        print(f"  [TXT] {len(unassigned_txt)} TXT-Datei(en) ohne erkennbaren Abschnitt:")
+        for name in unassigned_txt:
+            print(f"    - {name}")
+
+    print("\n  Diese Dateien wurden trotzdem ganz normal nach audio/, noten/")
+    print("  bzw. TXT/ kopiert - sie tauchen nur NICHT in dateien.json auf.")
     print("  Um sie zuzuordnen: Datei-/Ordnernamen im Quellordner mit der")
     print(f"  passenden Abschnitts-Nummer beginnen lassen (z.B. \"1.1 ...\",")
     print(f"  bei Audio-Ordnern mit Präfix \"{PARTIEN_PREFIX}\") UND sicherstellen,")
@@ -890,8 +928,11 @@ def main():
     print("\n-- Noten (PDF) -> wird nach noten/ kopiert -------------")
     noten, noten_source_files, unassigned_noten = collect_noten(valid_ids)
 
+    print(f"\n-- TXT -> wird nach {GITHUB_TXT_PATH}/ kopiert -------------")
+    txt, txt_source_files, unassigned_txt = collect_txt(valid_ids)
+
     # Zusammenführen
-    all_ids = sorted(set(list(audio.keys()) + list(noten.keys())),
+    all_ids = sorted(set(list(audio.keys()) + list(noten.keys()) + list(txt.keys())),
                      key=lambda x: [int(n) for n in x.split('.')])
 
     result = {}
@@ -901,6 +942,8 @@ def main():
             entry["noten"] = noten[sid]
         if sid in audio:
             entry["audio"] = audio[sid]
+        if sid in txt:
+            entry["txt"] = txt[sid]
         result[sid] = entry
 
     # JSON schreiben
@@ -912,28 +955,31 @@ def main():
     print(f"[OK] {len(all_ids)} Szenen gefunden")
     print(f"[OK] Dateien kopiert nach: {AUDIO_OUT_DIR}")
     print(f"                    und: {NOTEN_OUT_DIR}")
+    print(f"                    und: {TXT_OUT_DIR}")
     print(f"[OK] Datei gespeichert: {OUTPUT_FILE}\n")
     print("Vorschau:")
     print(json_str[:800] + ("..." if len(json_str) > 800 else ""))
-    print(f"\n[OK] Fertig! '{GITHUB_AUDIO_PATH}/', '{GITHUB_NOTEN_PATH}/' und")
+    print(f"\n[OK] Fertig! '{GITHUB_AUDIO_PATH}/', '{GITHUB_NOTEN_PATH}/', '{GITHUB_TXT_PATH}/' und")
     print(f"  'dateien.json' liegen jetzt in {DEST_DIR} bereit zum Commit/Push.")
 
-    # -- Nicht zugeordnete Dateien: MP3s/PDFs im Quellordner, die keinem
-    #    Abschnitt zugeordnet werden konnten (siehe extract_scene_id) --
-    report_unassigned(unassigned_audio, unassigned_noten)
+    # -- Nicht zugeordnete Dateien: MP3s/PDFs/TXTs im Quellordner, die
+    #    keinem Abschnitt zugeordnet werden konnten (siehe extract_scene_id) --
+    report_unassigned(unassigned_audio, unassigned_noten, unassigned_txt)
 
     # -- Aufräumen: Dateien im Zielordner, die im Quellordner nicht mehr
     #    existieren (z.B. weil im Quellordner umbenannt/gelöscht wurde) --
     print(f"\n-- Aufräumen -------------------------------------------")
     audio_orphans = find_orphans(AUDIO_OUT_DIR, audio_source_files, '.mp3')
     noten_orphans = find_orphans(NOTEN_OUT_DIR, noten_source_files, '.pdf')
+    txt_orphans = find_orphans(TXT_OUT_DIR, txt_source_files, '.txt')
 
-    if not audio_orphans and not noten_orphans:
+    if not audio_orphans and not noten_orphans and not txt_orphans:
         print("  [OK] Keine verwaisten Dateien gefunden - alles im Zielordner")
         print("    hat noch eine Entsprechung im Quellordner.")
     else:
         handle_orphans("Audio (MP3)", AUDIO_OUT_DIR, audio_orphans)
         handle_orphans("Noten (PDF)", NOTEN_OUT_DIR, noten_orphans)
+        handle_orphans("TXT", TXT_OUT_DIR, txt_orphans)
 
     git_status = "disabled"
     if GIT_AUTO_COMMIT_PUSH:
@@ -969,7 +1015,7 @@ def main():
         print("  [OK] ALLES ERFOLGREICH")
     print("=" * 55)
 
-    unassigned_count = len(unassigned_audio) + len(unassigned_noten)
+    unassigned_count = len(unassigned_audio) + len(unassigned_noten) + len(unassigned_txt) + len(unassigned_txt)
     if unassigned_count:
         print(f"  [Info] Hinweis: {unassigned_count} Datei(en) ohne erkennbaren")
         print("    Abschnitt (siehe 'Nicht zugeordnete Dateien' weiter oben).")

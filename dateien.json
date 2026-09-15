@@ -2,6 +2,9 @@
   "1.1": {
     "audio": [
       "audio/1.1 Marsch.mp3"
+    ],
+    "txt": [
+      "TXT/1.1. Marsch.txt"
     ]
   },
   "1.3": {
@@ -17,6 +20,14 @@
     ],
     "audio": [
       "audio/1.3 Nun will der Lenz.mp3"
+    ],
+    "txt": [
+      "TXT/1.3 Nun will der Lenz uns grüßen.txt"
+    ]
+  },
+  "2": {
+    "txt": [
+      "TXT/2. Lauf der Jahrzehnte.txt"
     ]
   },
   "2.1": {
@@ -60,6 +71,9 @@
     ],
     "audio": [
       "audio/2.1 Geh aus mein Herz.mp3"
+    ],
+    "txt": [
+      "TXT/2.1. Geh aus mein Herz.txt"
     ]
   },
   "3.2": {
@@ -103,11 +117,37 @@
     ],
     "audio": [
       "audio/3.2 Aufstehen und Laut sein.mp3"
+    ],
+    "txt": [
+      "TXT/3.2 Aufstehn und laut sein.txt"
+    ]
+  },
+  "3.3": {
+    "txt": [
+      "TXT/3.3 Kleiner Zopf.txt"
     ]
   },
   "4.1": {
     "noten": [
       "noten/4.1 Irgendwo auf der Welt.pdf"
+    ],
+    "txt": [
+      "TXT/4.1 Irgendwo auf der Welt.txt"
+    ]
+  },
+  "6.2": {
+    "txt": [
+      "TXT/6.2 Ich möchte leben.txt"
+    ]
+  },
+  "7.1": {
+    "txt": [
+      "TXT/7.1. 2nd Walz und Mambo.txt"
+    ]
+  },
+  "7.4": {
+    "txt": [
+      "TXT/7.4 Tanzparty.txt"
     ]
   },
   "8.1": {
@@ -125,6 +165,9 @@
     ],
     "audio": [
       "audio/8.1 Gavotte.mp3"
+    ],
+    "txt": [
+      "TXT/8.1 Tisch decken.txt"
     ]
   },
   "9.1": {
@@ -135,6 +178,9 @@
     "audio": [
       "audio/9.1 Bin ich allein Miriam.mp3",
       "audio/9.1 Bin ich allein v2.mp3"
+    ],
+    "txt": [
+      "TXT/9.1 Bin ich allein.txt"
     ]
   },
   "11.2": {
@@ -183,11 +229,22 @@
     ],
     "audio": [
       "audio/11.2 Kann Schule neutral sein.mp3"
+    ],
+    "txt": [
+      "TXT/11.2 Kann Schule neutral sein.txt"
     ]
   },
   "12.1": {
     "noten": [
       "noten/12.1 Mach End o Herr mach Ende.pdf"
+    ],
+    "txt": [
+      "TXT/12.1 Mach End O Herr.txt"
+    ]
+  },
+  "12.3": {
+    "txt": [
+      "TXT/12.3 Tanz um die Mitte.txt"
     ]
   },
   "13": {
@@ -196,6 +253,9 @@
     ],
     "audio": [
       "audio/13 Finale.mp3"
+    ],
+    "txt": [
+      "TXT/13 Finale.txt"
     ]
   }
 }
