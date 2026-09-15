@@ -204,6 +204,12 @@ PDF_FOLDER     = "pdf"           # Ordner mit allen PDF-Dateien
 TXT_FOLDER     = "TXT"           # Ordner mit allen TXT-Dateien
 PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
 
+# Name der besonderen TXT-Datei in TXT_FOLDER, die KEINE Szenen-Nummer im
+# Namen trägt, sondern eine allgemeine Beschreibung des ganzen Stücks
+# enthält. Sie landet nicht bei einer einzelnen Szene, sondern unter dem
+# Sonderschlüssel "_info" in dateien.json (siehe main()).
+INFO_TXT_FILENAME = "Generelle Informationen zum Stück.txt"
+
 # Namen der Zielordner in DEST_DIR - gleichzeitig die Pfade, wie sie in
 # der dateien.json stehen sollen (z.B. "audio/1.1 Marsch.mp3")
 GITHUB_AUDIO_PATH = "audio"
@@ -930,6 +936,10 @@ def main():
 
     print(f"\n-- TXT -> wird nach {GITHUB_TXT_PATH}/ kopiert -------------")
     txt, txt_source_files, unassigned_txt = collect_txt(valid_ids)
+    # INFO_TXT_FILENAME landet bewusst ohne Szenen-Nummer im TXT-Ordner und
+    # wird weiter unten separat unter "_info" abgelegt - taucht deshalb
+    # nicht als "nicht zugeordnet" auf.
+    unassigned_txt = [n for n in unassigned_txt if n != INFO_TXT_FILENAME]
 
     # Zusammenführen
     all_ids = sorted(set(list(audio.keys()) + list(noten.keys()) + list(txt.keys())),
@@ -945,6 +955,13 @@ def main():
         if sid in txt:
             entry["txt"] = txt[sid]
         result[sid] = entry
+
+    # Allgemeine Beschreibung des Stücks (keine Szenen-Nummer, siehe
+    # INFO_TXT_FILENAME) unter dem Sonderschlüssel "_info" ablegen, falls
+    # die Datei im TXT-Ordner liegt.
+    if txt_source_files and INFO_TXT_FILENAME in txt_source_files:
+        result["_info"] = [f"{GITHUB_TXT_PATH}/{INFO_TXT_FILENAME}"]
+        print(f"  [Info] Allgemeine Beschreibung gefunden: {INFO_TXT_FILENAME}")
 
     # JSON schreiben
     json_str = json.dumps(result, ensure_ascii=False, indent=2)
