@@ -92,9 +92,12 @@ ANPASSEN:
     SOURCE_DIR bzw. DEST_DIR zusammengesetzt - auf jedem Rechner passt
     sich das automatisch an, egal wie der OneDrive-Ordner genau heißt
     oder wer angemeldet ist.
-  - IGNORE_FILENAMES: Dateinamen, die komplett ignoriert werden (nicht
-    kopiert, nicht geprüft) - z.B. für eine allgemeine Infodatei ohne
-    Bezug zu einem einzelnen Abschnitt.
+  - IGNORE_FILENAMES: Dateinamen, die ganz normal kopiert werden (auch
+    erneut, wenn sich was geändert hat), aber NICHT der Abschnitts-
+    Zuordnung unterworfen werden: kein Eintrag in dateien.json, nicht in
+    der "nicht zugeordnet"-Liste, nie als "verwaist" gemeldet/zum Löschen
+    vorgeschlagen - z.B. für eine allgemeine Infodatei ohne Bezug zu einem
+    einzelnen Abschnitt.
   - PDF_FOLDER: Name des PDF-Unterordners in SOURCE_DIR
   - TXT_FOLDER: Name des TXT-Unterordners in SOURCE_DIR
   - PARTIEN_PREFIX: Anfang der Audio-Unterordnernamen in SOURCE_DIR
@@ -209,10 +212,12 @@ TXT_FOLDER     = "TXT"           # Ordner mit allen TXT-Dateien
 PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
 
 # Dateinamen (nur der Dateiname, ohne Pfad - Groß-/Kleinschreibung egal),
-# die das Script IMMER komplett ignoriert: nicht kopiert, nicht auf einen
-# Abschnitt geprüft, taucht auch nicht in der "nicht zugeordnet"-Liste auf.
-# Für allgemeine Dateien ohne Bezug zu einem einzelnen Abschnitt, z.B.
-# eine Datei mit generellen Infos zum Stück statt zu einer Szene.
+# die das Script GANZ NORMAL kopiert (auch erneut, wenn sich was geändert
+# hat), aber NICHT der Abschnitts-Zuordnung unterwirft: kein Eintrag in
+# dateien.json, taucht nicht in der "nicht zugeordnet"-Liste auf, wird nie
+# als "verwaist" gemeldet/zum Löschen vorgeschlagen. Für allgemeine
+# Dateien ohne Bezug zu einem einzelnen Abschnitt, z.B. eine Datei mit
+# generellen Infos zum Stück statt zu einer Szene.
 IGNORE_FILENAMES = {
     "Generelle Informationen zum Stück.txt",
 }
@@ -626,11 +631,17 @@ def collect_audio(valid_ids):
         mp3s = []
         for f in sorted(os.scandir(entry.path), key=lambda x: x.name.lower()):
             if f.is_file() and f.name.lower().endswith('.mp3'):
-                if f.name.lower() in _IGNORE_FILENAMES_LOWER:
-                    print(f"  [Info] '{f.name}' steht in IGNORE_FILENAMES - wird komplett übersprungen.")
-                    continue
                 source_filenames.add(f.name)
                 copy_file(f.path, AUDIO_OUT_DIR, f.name)
+
+                if f.name.lower() in _IGNORE_FILENAMES_LOWER:
+                    # Wird ganz normal kopiert (auch bei Änderungen erneut),
+                    # aber NICHT der Abschnitts-Zuordnung unterworfen: kein
+                    # Eintrag in dateien.json, nicht in der "nicht
+                    # zugeordnet"-Liste, nie als "verwaist" gemeldet.
+                    print(f"  [Audio] (allgemein, kopiert, ohne Abschnitts-Zuordnung): {f.name}")
+                    continue
+
                 if sid_ok:
                     github_path = f"{GITHUB_AUDIO_PATH}/{f.name}"
                     mp3s.append(github_path)
@@ -691,12 +702,17 @@ def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix
             continue
         if not f.name.lower().endswith(extension):
             continue
-        if f.name.lower() in _IGNORE_FILENAMES_LOWER:
-            print(f"  [Info] '{f.name}' steht in IGNORE_FILENAMES - wird komplett übersprungen.")
-            continue
 
         source_filenames.add(f.name)
         copy_file(f.path, out_dir, f.name)
+
+        if f.name.lower() in _IGNORE_FILENAMES_LOWER:
+            # Wird ganz normal kopiert (auch bei Änderungen erneut), aber
+            # NICHT der Abschnitts-Zuordnung unterworfen: kein Eintrag in
+            # dateien.json, nicht in der "nicht zugeordnet"-Liste, nie als
+            # "verwaist" gemeldet (siehe find_orphans()).
+            print(f"  [{label}] (allgemein, kopiert, ohne Abschnitts-Zuordnung): {f.name}")
+            continue
 
         sid = extract_scene_id(f.name)
         sid_ok = sid is not None and (not valid_ids or sid in valid_ids)
