@@ -204,12 +204,6 @@ PDF_FOLDER     = "pdf"           # Ordner mit allen PDF-Dateien
 TXT_FOLDER     = "TXT"           # Ordner mit allen TXT-Dateien
 PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
 
-# Name der besonderen TXT-Datei in TXT_FOLDER, die KEINE Szenen-Nummer im
-# Namen trägt, sondern eine allgemeine Beschreibung des ganzen Stücks
-# enthält. Sie landet nicht bei einer einzelnen Szene, sondern unter dem
-# Sonderschlüssel "_info" in dateien.json (siehe main()).
-INFO_TXT_FILENAME = "Generelle Informationen zum Stück.txt"
-
 # Namen der Zielordner in DEST_DIR - gleichzeitig die Pfade, wie sie in
 # der dateien.json stehen sollen (z.B. "audio/1.1 Marsch.mp3")
 GITHUB_AUDIO_PATH = "audio"
@@ -483,6 +477,21 @@ def load_valid_scene_ids():
     return valid_ids, csv_path
 
 
+def paths_overlap(a, b):
+    """
+    True, wenn die Ordner a und b identisch sind ODER einer der beiden im
+    anderen liegt (z.B. DEST_DIR irgendwo unterhalb von SOURCE_DIR). Wird
+    benutzt, um VOR jedem Kopieren sicherzustellen, dass Quell- und
+    Zielordner garantiert getrennt sind - eine Überschneidung wäre
+    gefährlich, weil dann versehentlich Dateien im Quellordner als
+    "Ziel" landen könnten (siehe copy_file() für den Schutz auf
+    Einzeldatei-Ebene).
+    """
+    a = os.path.normcase(os.path.normpath(os.path.abspath(a)))
+    b = os.path.normcase(os.path.normpath(os.path.abspath(b)))
+    return a == b or a.startswith(b + os.sep) or b.startswith(a + os.sep)
+
+
 def extract_scene_id(filename):
     """
     Extrahiert die Szenen-ID aus einem Datei- oder Ordnernamen.
@@ -511,13 +520,30 @@ def copy_file(src_path, dest_dir, filename):
     demselben Namen enthalten) - gibt dabei aber eine kurze Meldung aus.
     Bricht bei einem Kopierfehler NICHT das ganze Script ab, sondern
     meldet den Fehler und zählt ihn für die Abschluss-Zusammenfassung.
+
+    WICHTIG - Schutz vor Datenverlust im Quellordner:
+    shutil.copy2() öffnet die Zieldatei zum Schreiben (und LEERT sie damit
+    sofort), bevor überhaupt aus der Quelle gelesen wird. Wenn Quelle und
+    Ziel versehentlich dieselbe Datei sind (z.B. weil SOURCE_DIR/DEST_DIR
+    sich überschneiden), würde das den Inhalt der Original-Datei im
+    Quellordner zerstören - obwohl das Script eigentlich nur kopiert, nie
+    in den Quellordner schreibt. Deshalb wird hier NICHT nur der reine
+    Pfad-Text verglichen (kann z.B. unter Windows bei Groß-/Kleinschreibung
+    danebenliegen), sondern zusätzlich mit os.path.samefile() geprüft, ob
+    es sich um dieselbe Datei auf der Festplatte handelt (funktioniert auch
+    bei unterschiedlicher Schreibweise, Symlinks/Junctions etc.).
     """
     try:
         os.makedirs(dest_dir, exist_ok=True)
         dest_path = os.path.join(dest_dir, filename)
 
-        if os.path.abspath(src_path) == os.path.abspath(dest_path):
+        if os.path.normcase(os.path.abspath(src_path)) == os.path.normcase(os.path.abspath(dest_path)):
             return
+        try:
+            if os.path.exists(dest_path) and os.path.samefile(src_path, dest_path):
+                return
+        except OSError:
+            pass
 
         if os.path.exists(dest_path):
             print(f"     * überschreibe vorhandene Datei im Zielordner: {filename}")
@@ -925,6 +951,23 @@ def main():
             pass
         return
 
+    if paths_overlap(SOURCE_DIR, DEST_DIR):
+        print("[FEHLER] Quellordner und Zielordner überschneiden sich:")
+        print(f"  Quellordner: {SOURCE_DIR}")
+        print(f"  Zielordner:  {DEST_DIR}")
+        print("  Einer der beiden Ordner liegt (ganz oder teilweise) im")
+        print("  jeweils anderen - dadurch könnten beim Kopieren aus Versehen")
+        print("  Original-Dateien im Quellordner überschrieben/geleert werden.")
+        print("  Script wurde deshalb zur Sicherheit abgebrochen, OHNE etwas")
+        print("  zu verändern. Bitte SOURCE_SUBPATH und DEST_SUBPATH oben im")
+        print("  Script prüfen - die zusammengesetzten Pfade dürfen sich in")
+        print("  keinem Fall überschneiden.")
+        try:
+            input("\n[Enter] zum Beenden...")
+        except EOFError:
+            pass
+        return
+
     print("-- Besetzung (gültige Abschnitte) ----------------------")
     valid_ids, besetzung_csv_path = load_valid_scene_ids()
 
@@ -936,10 +979,6 @@ def main():
 
     print(f"\n-- TXT -> wird nach {GITHUB_TXT_PATH}/ kopiert -------------")
     txt, txt_source_files, unassigned_txt = collect_txt(valid_ids)
-    # INFO_TXT_FILENAME landet bewusst ohne Szenen-Nummer im TXT-Ordner und
-    # wird weiter unten separat unter "_info" abgelegt - taucht deshalb
-    # nicht als "nicht zugeordnet" auf.
-    unassigned_txt = [n for n in unassigned_txt if n != INFO_TXT_FILENAME]
 
     # Zusammenführen
     all_ids = sorted(set(list(audio.keys()) + list(noten.keys()) + list(txt.keys())),
@@ -955,13 +994,6 @@ def main():
         if sid in txt:
             entry["txt"] = txt[sid]
         result[sid] = entry
-
-    # Allgemeine Beschreibung des Stücks (keine Szenen-Nummer, siehe
-    # INFO_TXT_FILENAME) unter dem Sonderschlüssel "_info" ablegen, falls
-    # die Datei im TXT-Ordner liegt.
-    if txt_source_files and INFO_TXT_FILENAME in txt_source_files:
-        result["_info"] = [f"{GITHUB_TXT_PATH}/{INFO_TXT_FILENAME}"]
-        print(f"  [Info] Allgemeine Beschreibung gefunden: {INFO_TXT_FILENAME}")
 
     # JSON schreiben
     json_str = json.dumps(result, ensure_ascii=False, indent=2)
@@ -1032,7 +1064,7 @@ def main():
         print("  [OK] ALLES ERFOLGREICH")
     print("=" * 55)
 
-    unassigned_count = len(unassigned_audio) + len(unassigned_noten) + len(unassigned_txt) + len(unassigned_txt)
+    unassigned_count = len(unassigned_audio) + len(unassigned_noten) + len(unassigned_txt)
     if unassigned_count:
         print(f"  [Info] Hinweis: {unassigned_count} Datei(en) ohne erkennbaren")
         print("    Abschnitt (siehe 'Nicht zugeordnete Dateien' weiter oben).")
