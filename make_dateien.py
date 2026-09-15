@@ -92,6 +92,9 @@ ANPASSEN:
     SOURCE_DIR bzw. DEST_DIR zusammengesetzt - auf jedem Rechner passt
     sich das automatisch an, egal wie der OneDrive-Ordner genau heißt
     oder wer angemeldet ist.
+  - IGNORE_FILENAMES: Dateinamen, die komplett ignoriert werden (nicht
+    kopiert, nicht geprüft) - z.B. für eine allgemeine Infodatei ohne
+    Bezug zu einem einzelnen Abschnitt.
   - PDF_FOLDER: Name des PDF-Unterordners in SOURCE_DIR
   - TXT_FOLDER: Name des TXT-Unterordners in SOURCE_DIR
   - PARTIEN_PREFIX: Anfang der Audio-Unterordnernamen in SOURCE_DIR
@@ -204,6 +207,16 @@ else:
 PDF_FOLDER     = "pdf"           # Ordner mit allen PDF-Dateien
 TXT_FOLDER     = "TXT"           # Ordner mit allen TXT-Dateien
 PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
+
+# Dateinamen (nur der Dateiname, ohne Pfad - Groß-/Kleinschreibung egal),
+# die das Script IMMER komplett ignoriert: nicht kopiert, nicht auf einen
+# Abschnitt geprüft, taucht auch nicht in der "nicht zugeordnet"-Liste auf.
+# Für allgemeine Dateien ohne Bezug zu einem einzelnen Abschnitt, z.B.
+# eine Datei mit generellen Infos zum Stück statt zu einer Szene.
+IGNORE_FILENAMES = {
+    "Generelle Informationen zum Stück.txt",
+}
+_IGNORE_FILENAMES_LOWER = {n.lower() for n in IGNORE_FILENAMES}
 
 # Namen der Zielordner in DEST_DIR - gleichzeitig die Pfade, wie sie in
 # der dateien.json stehen sollen (z.B. "audio/1.1 Marsch.mp3")
@@ -613,6 +626,9 @@ def collect_audio(valid_ids):
         mp3s = []
         for f in sorted(os.scandir(entry.path), key=lambda x: x.name.lower()):
             if f.is_file() and f.name.lower().endswith('.mp3'):
+                if f.name.lower() in _IGNORE_FILENAMES_LOWER:
+                    print(f"  [Info] '{f.name}' steht in IGNORE_FILENAMES - wird komplett übersprungen.")
+                    continue
                 source_filenames.add(f.name)
                 copy_file(f.path, AUDIO_OUT_DIR, f.name)
                 if sid_ok:
@@ -674,6 +690,9 @@ def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix
         if not f.is_file():
             continue
         if not f.name.lower().endswith(extension):
+            continue
+        if f.name.lower() in _IGNORE_FILENAMES_LOWER:
+            print(f"  [Info] '{f.name}' steht in IGNORE_FILENAMES - wird komplett übersprungen.")
             continue
 
         source_filenames.add(f.name)
