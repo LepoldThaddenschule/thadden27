@@ -258,10 +258,6 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
 .ff-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;opacity:.35;}
 .ff-dot.pdf,.ff-dot.mp3{background:var(--brd-dk);}
 .ff-btn.on .ff-dot{opacity:.7;}
-.ff-btn {display:flex;align-items:center;gap:8px;}
-.ff-btn .ff-lbl{flex:1;}
-.sym-icon{width:18px;height:18px;display:inline-block;vertical-align:middle;flex-shrink:0;color:currentColor;}
-.fbadge .sym-icon{width:14px;height:14px;}
 .ff-chk{margin-left:auto;flex-shrink:0;font-size:11px;color:transparent;}
 .ff-btn.on .ff-chk{color:var(--tx-mid);}
 #file-filter-block{padding:11px 8px 8px 8px;border-bottom:2px solid var(--brd);flex-shrink:0;}
@@ -298,21 +294,9 @@ audio{width:100%;height:36px;border-radius:4px;display:block;}
     </div>
     <div id="file-filter-block">
       <div class="sb-lbl">Dateien</div>
-      <button class="ff-btn" id="ff-txt" onclick="toggleFileFilter('txt')">
-        <svg class="sym-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 18c0-5.523 4.477-10 10-10h20c5.523 0 10 4.477 10 10v18c0 5.523-4.477 10-10 10H28l-12 10v-10c-5.523 0-10-4.477-10-10V18z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 25h24M20 33h18M20 41h12" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
-        <span class="ff-lbl">Beschreibung vorhanden</span>
-        <span class="ff-chk" id="ff-txt-chk"></span>
-      </button>
-      <button class="ff-btn" id="ff-pdf" onclick="toggleFileFilter('pdf')">
-        <svg class="sym-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M18 12h24l10 10v30c0 4.418-3.582 8-8 8H18c-4.418 0-8-3.582-8-8V20c0-4.418 3.582-8 8-8z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 12v10h10" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 24h20M22 32h20M22 40h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M29 41v-8.5c0-2.2 1.8-4 4-4s4 1.8 4 4v2.5l-6 5v-6.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ff-lbl">Noten vorhanden</span>
-        <span class="ff-chk" id="ff-pdf-chk"></span>
-      </button>
-      <button class="ff-btn" id="ff-mp3" onclick="toggleFileFilter('mp3')">
-        <svg class="sym-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M16 24h12l16-12v40l-16-12H16z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 22c3.2 2.3 5 5.4 5 10s-1.8 7.7-5 10M53 16c5.4 3.7 8.5 8.5 8.5 16s-3.1 12.3-8.5 16M42 28c1.8 1.4 2.8 3.2 2.8 6s-1 4.6-2.8 6" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="ff-lbl">Audio vorhanden</span>
-        <span class="ff-chk" id="ff-mp3-chk"></span>
-      </button>
+      <button class="ff-btn" id="ff-txt" onclick="toggleFileFilter('txt')">Beschreibung vorhanden 🪶<span class="ff-chk" id="ff-txt-chk"></span></button>
+      <button class="ff-btn" id="ff-pdf" onclick="toggleFileFilter('pdf')">Noten vorhanden 🎼<span class="ff-chk" id="ff-pdf-chk"></span></button>
+      <button class="ff-btn" id="ff-mp3" onclick="toggleFileFilter('mp3')">Audio vorhanden 🎵<span class="ff-chk" id="ff-mp3-chk"></span></button>
     </div>
     <div id="ens-wrap">
       <div class="ens-hdr-row">
@@ -370,32 +354,24 @@ function scrollToSection(id,cls){
     if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
   },120);
 }
-function getSymIconSVG(kind){
-  var map={
-    txt:'<svg class="sym-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 18c0-5.523 4.477-10 10-10h20c5.523 0 10 4.477 10 10v18c0 5.523-4.477 10-10 10H28l-12 10v-10c-5.523 0-10-4.477-10-10V18z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 25h24M20 33h18M20 41h12" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>',
-    pdf:'<svg class="sym-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M18 12h24l10 10v30c0 4.418-3.582 8-8 8H18c-4.418 0-8-3.582-8-8V20c0-4.418 3.582-8 8-8z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 12v10h10" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 24h20M22 32h20M22 40h14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M29 41v-8.5c0-2.2 1.8-4 4-4s4 1.8 4 4v2.5l-6 5v-6.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    mp3:'<svg class="sym-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M16 24h12l16-12v40l-16-12H16z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 22c3.2 2.3 5 5.4 5 10s-1.8 7.7-5 10M53 16c5.4 3.7 8.5 8.5 8.5 16s-3.1 12.3-8.5 16M42 28c1.8 1.4 2.8 3.2 2.8 6s-1 4.6-2.8 6" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-  };
-  return map[kind]||'';
-}
 function mkBadges(sc){
   var af=anyFiles(sc);if(!af.pdf&&!af.mp3&&!af.txt)return null;
   var w=document.createElement('div');w.className='file-badges';
   if(af.txt){
     var b0=document.createElement('span');b0.className='fbadge fbadge-link';
-    b0.title='Beschreibung anzeigen';b0.innerHTML=getSymIconSVG('txt');
+    b0.title='Beschreibung anzeigen';b0.textContent='\uD83E\uDEB6';
     b0.onclick=(function(id){return function(e){e.stopPropagation();scrollToSection(id,'sec-desc');};})(sc.id);
     w.appendChild(b0);
   }
   if(af.pdf){
     var b=document.createElement('span');b.className='fbadge fbadge-link';
-    b.title='Noten anzeigen';b.innerHTML=getSymIconSVG('pdf');
+    b.title='Noten anzeigen';b.textContent='\uD83C\uDFBC';
     b.onclick=(function(id){return function(e){e.stopPropagation();scrollToSection(id,'sec-noten');};})(sc.id);
     w.appendChild(b);
   }
   if(af.mp3){
     var b2=document.createElement('span');b2.className='fbadge fbadge-link';
-    b2.title='Audio anzeigen';b2.innerHTML=getSymIconSVG('mp3');
+    b2.title='Audio anzeigen';b2.textContent='\uD83C\uDFB5';
     b2.onclick=(function(id){return function(e){e.stopPropagation();scrollToSection(id,'sec-audio');};})(sc.id);
     w.appendChild(b2);
   }
