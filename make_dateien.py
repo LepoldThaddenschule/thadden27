@@ -221,6 +221,22 @@ PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
 IGNORE_FILENAMES = {
     "Generelle Informationen zum Stück.txt",
 }
+
+# Die Datei mit den generellen Infos zum Stück wird zusätzlich als "_info"
+# in dateien.json eingetragen - die Website zeigt sie dann oben in der
+# Szenenliste als eigene Karte an.
+INFO_FILENAME = "Generelle Informationen zum Stück.txt"
+
+# Liedtexte: TXT-Dateien, deren Name auf "_Lyrics.txt" endet (Groß-/Klein-
+# schreibung egal), z.B. "2.1_Lyrics.txt" oder "2.1 Geh aus mein Herz_Lyrics.txt".
+# Sie landen in dateien.json NICHT unter "txt" (Beschreibung), sondern unter
+# "lyrics" - die Website zeigt sie auf der Szenen-Seite als eigenen Abschnitt.
+LYRICS_PATTERN = re.compile(r'[_\s-]lyrics\.txt$', re.IGNORECASE)
+
+
+def is_lyrics_file(filename):
+    """True, wenn der Dateiname auf '_Lyrics.txt' endet (siehe LYRICS_PATTERN)."""
+    return bool(LYRICS_PATTERN.search(os.path.basename(filename)))
 _IGNORE_FILENAMES_LOWER = {n.lower() for n in IGNORE_FILENAMES}
 
 # Namen der Zielordner in DEST_DIR - gleichzeitig die Pfade, wie sie in
@@ -1037,8 +1053,21 @@ def main():
     print(f"\n-- TXT -> wird nach {GITHUB_TXT_PATH}/ kopiert -------------")
     txt, txt_source_files, unassigned_txt = collect_txt(valid_ids)
 
+    # Liedtexte ("..._Lyrics.txt") von den normalen Beschreibungen trennen
+    lyrics = {}
+    for sid in list(txt.keys()):
+        ly = [p for p in txt[sid] if is_lyrics_file(p)]
+        if ly:
+            lyrics[sid] = ly
+            txt[sid] = [p for p in txt[sid] if not is_lyrics_file(p)]
+            if not txt[sid]:
+                del txt[sid]
+            for p in ly:
+                print(f"  [Lyrics] {sid}: {os.path.basename(p)}")
+
     # Zusammenführen
-    all_ids = sorted(set(list(audio.keys()) + list(noten.keys()) + list(txt.keys())),
+    all_ids = sorted(set(list(audio.keys()) + list(noten.keys()) + list(txt.keys())
+                         + list(lyrics.keys())),
                      key=lambda x: [int(n) for n in x.split('.')])
 
     result = {}
@@ -1050,7 +1079,13 @@ def main():
             entry["audio"] = audio[sid]
         if sid in txt:
             entry["txt"] = txt[sid]
+        if sid in lyrics:
+            entry["lyrics"] = lyrics[sid]
         result[sid] = entry
+
+    # Generelle Infos zum Stück (falls vorhanden) als "_info" eintragen
+    if txt_source_files and INFO_FILENAME in txt_source_files:
+        result["_info"] = [f"{GITHUB_TXT_PATH}/{INFO_FILENAME}"]
 
     # JSON schreiben
     json_str = json.dumps(result, ensure_ascii=False, indent=2)

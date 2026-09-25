@@ -23,6 +23,9 @@
     ],
     "txt": [
       "TXT/1.3 Nun will der Lenz uns grüßen.txt"
+    ],
+    "lyrics": [
+      "TXT/1.3_Lyrics.txt"
     ]
   },
   "2": {
@@ -73,7 +76,10 @@
       "audio/2.1 Geh aus mein Herz.mp3"
     ],
     "txt": [
-      "TXT/2.1. Geh aus mein Herz.txt"
+      "TXT/2.1 Geh aus mein Herz.txt"
+    ],
+    "lyrics": [
+      "TXT/2.1_Lyrics.txt"
     ]
   },
   "3.2": {
@@ -324,5 +330,8 @@
     "txt": [
       "TXT/13 Finale.txt"
     ]
-  }
+  },
+  "_info": [
+    "TXT/Generelle Informationen zum Stück.txt"
+  ]
 }
