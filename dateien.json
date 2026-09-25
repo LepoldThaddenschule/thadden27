@@ -126,6 +126,9 @@
     ],
     "txt": [
       "TXT/3.2 Aufstehn und laut sein.txt"
+    ],
+    "lyrics": [
+      "TXT/3.2_Lyrics.txt"
     ]
   },
   "3.3": {
@@ -178,6 +181,9 @@
     ],
     "txt": [
       "TXT/6.2 Ich möchte leben.txt"
+    ],
+    "lyrics": [
+      "TXT/6.2_Lyrics.txt"
     ]
   },
   "7.1": {
@@ -337,8 +343,10 @@
       "audio/13 Finale.mp3"
     ],
     "txt": [
-      "TXT/13 Finale - Kopie.txt",
       "TXT/13 Finale.txt"
+    ],
+    "lyrics": [
+      "TXT/13_Lyrics.txt"
     ]
   },
   "_info": [
