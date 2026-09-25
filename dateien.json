@@ -212,7 +212,7 @@
   },
   "9.1": {
     "noten": [
-      "noten/9.1 Bin ich allein- Miriam, Anna, Gabriel & Querbeets.pdf",
+      "noten/9.1 Bin ich allein- - Miriam, Anna, Gabriel & Querbeets.pdf",
       "noten/9.1 Bin ich allein- Partitur.pdf"
     ],
     "audio": [
@@ -221,6 +221,9 @@
     ],
     "txt": [
       "TXT/9.1 Bin ich allein.txt"
+    ],
+    "lyrics": [
+      "TXT/9.1_Lyrics.txt"
     ]
   },
   "11.2": {
@@ -272,6 +275,9 @@
     ],
     "txt": [
       "TXT/11.2 Kann Schule neutral sein.txt"
+    ],
+    "lyrics": [
+      "TXT/11.2_Lyrics.txt"
     ]
   },
   "12.1": {
@@ -280,6 +286,9 @@
     ],
     "txt": [
       "TXT/12.1 Mach End O Herr.txt"
+    ],
+    "lyrics": [
+      "TXT/12.1_Lyrics.txt"
     ]
   },
   "12.3": {
@@ -328,6 +337,7 @@
       "audio/13 Finale.mp3"
     ],
     "txt": [
+      "TXT/13 Finale - Kopie.txt",
       "TXT/13 Finale.txt"
     ]
   },

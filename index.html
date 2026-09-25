@@ -668,8 +668,6 @@ if(txts.length){
     var item=document.createElement('div');item.className='desc-item';
     var body=document.createElement('div');body.className='desc-text';body.textContent='Lädt…';
     item.appendChild(body);
-    var dl=document.createElement('a');dl.className='desc-dl';dl.href=t.url;dl.target='_blank';dl.rel='noopener';dl.textContent='↓ '+t.name;
-    item.appendChild(dl);
     bod0.appendChild(item);
     fetch(t.url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(txt){txt=txt.trim();if(!txt){body.className='file-empty';body.textContent='Noch keine Informationen eingetragen.';}else{body.textContent=txt;}}).catch(function(){body.textContent='(Beschreibung konnte nicht geladen werden.)';body.style.color='var(--tx-dim)';});
   });
@@ -695,8 +693,6 @@ if(lys.length){
     if(lys.length>1){var nmL=document.createElement('div');nmL.className='lyrics-name';nmL.textContent=t.name.replace(/[_\s-]lyrics\.txt$/i,'').replace(/\.txt$/i,'');item.appendChild(nmL);}
     var body=document.createElement('div');body.className='lyrics-text';body.textContent='L\xe4dt\u2026';
     item.appendChild(body);
-    var dl=document.createElement('a');dl.className='desc-dl';dl.href=t.url;dl.target='_blank';dl.rel='noopener';dl.textContent='\u2193 '+t.name;
-    item.appendChild(dl);
     bodL.appendChild(item);
     fetch(t.url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(txt){txt=txt.replace(/\r\n?/g,'\n').trim();if(!txt){body.className='file-empty';body.textContent='Noch kein Liedtext eingetragen.';}else{body.textContent=txt;}}).catch(function(){body.textContent='(Liedtext konnte nicht geladen werden.)';body.style.color='var(--tx-dim)';});
   });
