@@ -966,11 +966,35 @@ def git_commit_and_push():
     if not ignore_excel_lockfiles_in_git():
         return "add_failed"
 
-    # Alle übrigen Änderungen erfassen, auch besetzung.xlsx und besetzung.csv.
+    # CSV explizit aufnehmen, auch falls sie durch globale Git-Regeln
+    # oder eine lokale .git/info/exclude ignoriert werden sollte.
+    csv_path = os.path.join(DEST_DIR, "besetzung.csv")
+    if not os.path.isfile(csv_path):
+        print("  [FEHLER] besetzung.csv fehlt; Git-Upload wird abgebrochen.")
+        return "add_failed"
+    ok, out = run_git(["add", "-f", "--", "besetzung.csv"], DEST_DIR)
+    if not ok:
+        print(f"  [FEHLER] Konnte besetzung.csv nicht zum Commit vormerken: {out}")
+        return "add_failed"
+
+    # Alle übrigen Änderungen erfassen.
     ok, out = run_git(["add", "-A", "."], DEST_DIR)
     if not ok:
         print(f"  [FEHLER] 'git add' fehlgeschlagen:\n{out}")
         return "add_failed"
+
+    # Anzeige, ob die neu erzeugte CSV andere Inhalte als der letzte
+    # Git-Commit hat. Nur tatsächlich geänderte Inhalte erzeugen eine
+    # neue Git-Dateiversion (erneutes Speichern alleine reicht nicht).
+    ok, out = run_git(["diff", "--cached", "--name-only", "--", "besetzung.csv"], DEST_DIR)
+    if not ok:
+        print(f"  [FEHLER] CSV-Aenderungspruefung fehlgeschlagen: {out}")
+        return "add_failed"
+    if out.strip():
+        print("  [Git/CSV] besetzung.csv wurde geaendert und wird mitcommittet.")
+    else:
+        print("  [Git/CSV] Inhalt von besetzung.csv ist bereits identisch mit dem Git-Stand.")
+        print("            Sie wird deshalb nicht erneut als Dateiaenderung angezeigt.")
 
     ok, out = run_git(["diff", "--cached", "--quiet"], DEST_DIR)
     if ok:
@@ -1009,6 +1033,19 @@ def git_commit_and_push():
         print(f"  {out}")
     if ok:
         print("  [OK] Erfolgreich gepusht.")
+        # Der Push beinhaltet den aktuellen HEAD. Daher pruefen wir,
+        # ob genau diese CSV im gepushten Commit gespeichert ist.
+        exists, details = run_git(["cat-file", "-e", "HEAD:besetzung.csv"], DEST_DIR)
+        if not exists:
+            print("  [FEHLER] Im gepushten Commit fehlt besetzung.csv!", details)
+            return "csv_verify_failed"
+        identical, details = run_git(["diff", "--quiet", "HEAD", "--", "besetzung.csv"], DEST_DIR)
+        if not identical:
+            print("  [FEHLER] Lokale besetzung.csv unterscheidet sich vom gepushten Commit!")
+            print("     Bitte den Git-Status pruefen:", details)
+            return "csv_verify_failed"
+        print("  [Git/CSV] Geprueft: besetzung.csv ist im gepushten Commit enthalten")
+        print("            und stimmt mit der lokalen CSV ueberein.")
         return "pushed"
 
     print("  [FEHLER] 'git push' fehlgeschlagen - Änderungen sind lokal")
@@ -1191,6 +1228,8 @@ def main():
         problems.append("'git pull --no-rebase' ist fehlgeschlagen (kein Push durchgeführt)")
     elif git_status == "push_failed":
         problems.append("'git push' ist fehlgeschlagen (lokal aber committet)")
+    elif git_status == "csv_verify_failed":
+        problems.append("besetzung.csv fehlt im gepushten Commit oder stimmt nicht ueberein")
     # "disabled", "skipped_by_user", "no_changes" und "pushed" sind alle
     # in Ordnung - kein Problem, sondern erwartetes/gewolltes Verhalten.
 
