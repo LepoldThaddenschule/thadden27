@@ -387,22 +387,23 @@ def convert_xlsx_to_csv(xlsx_path, csv_path):
 
 
 def sync_besetzung_csv_from_xlsx():
+    """Erzeugt IMMER besetzung.csv aus der Excel-Datei im Git-Repo.
+
+    Dabei wird nicht auf Dateizeitstempel vertraut (OneDrive und Excel
+    koennen Zeitstempel unterschiedlich setzen). Fehlt die XLSX oder
+    schlaegt die Konvertierung fehl, ist dies ein Fehler und das gesamte
+    Skript darf keine alte CSV stillschweigend weiterverwenden.
     """
-    Prüft BESETZUNG_XLSX_CANDIDATES der Reihe nach; existiert eine
-    besetzung.xlsx, wird daraus die gleichnamige besetzung.csv im selben
-    Ordner erzeugt/aktualisiert - aber nur, wenn diese fehlt oder älter
-    als die xlsx ist (spart unnötige Konvertierungen bei jedem Lauf).
-    """
-    for xlsx_path in BESETZUNG_XLSX_CANDIDATES:
-        if not os.path.isfile(xlsx_path):
-            continue
-        csv_path = os.path.splitext(xlsx_path)[0] + ".csv"
-        stale = not os.path.isfile(csv_path) or \
-            os.path.getmtime(xlsx_path) > os.path.getmtime(csv_path)
-        if stale:
-            print(f"  [Info]  '{os.path.basename(xlsx_path)}' gefunden - erzeuge/aktualisiere CSV ...")
-            convert_xlsx_to_csv(xlsx_path, csv_path)
-        break  # nur die erste gefundene xlsx verwenden (gleiche Prioritaet wie bei den CSV-Kandidaten)
+    xlsx_path = os.path.join(DEST_DIR, "besetzung.xlsx")
+    csv_path = os.path.join(DEST_DIR, "besetzung.csv")
+    if not os.path.isfile(xlsx_path):
+        print(f"  [FEHLER] Excel-Quelldatei fehlt: {xlsx_path}")
+        print("     Bitte besetzung.xlsx in den GitHub-Ordner thadden27 legen.")
+        print("     Die alte besetzung.csv wird NICHT ersatzweise verwendet.")
+        return False
+
+    print("  [Info] 'besetzung.xlsx' gefunden - CSV wird immer frisch erzeugt.")
+    return convert_xlsx_to_csv(xlsx_path, csv_path)
 
 
 def load_valid_scene_ids():
@@ -422,7 +423,8 @@ def load_valid_scene_ids():
                   Zahlen-Präfix erkannte ID gilt automatisch als gültig).
       csv_path  = Pfad der benutzten CSV, oder None.
     """
-    sync_besetzung_csv_from_xlsx()
+    if not sync_besetzung_csv_from_xlsx():
+        return None, None
 
     csv_path = next((c for c in BESETZUNG_CSV_CANDIDATES if os.path.isfile(c)), None)
 
@@ -1080,6 +1082,14 @@ def main():
 
     print("-- Besetzung (gültige Abschnitte) ----------------------")
     valid_ids, besetzung_csv_path = load_valid_scene_ids()
+    if valid_ids is None:
+        print("\n[FEHLER] Abbruch: besetzung.xlsx konnte nicht erfolgreich in CSV umgewandelt werden.")
+        print("         Es werden keine Dateien kopiert oder zu GitHub gepusht.")
+        try:
+            input("\n[Enter] zum Beenden...")
+        except EOFError:
+            pass
+        return
 
     print("\n-- Audio (MP3) -> wird nach audio/ kopiert -------------")
     audio, audio_source_files, unassigned_audio = collect_audio(valid_ids)
