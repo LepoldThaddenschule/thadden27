@@ -45,43 +45,61 @@ ZIELORDNER (Git-Repo) - NACHHER:
   `---- dateien.json                  <- verweist auf audio/..., noten/... und TXT/...
 
 Die Original-Dateien im Quellordner (OneDrive) bleiben dabei unangetastet
-- es wird kopiert, nicht verschoben/gelöscht. Wenn zwei MP3s aus
-unterschiedlichen "Partien aus ..."-Ordnern zufällig denselben Dateinamen
-haben, überschreibt die zuletzt kopierte Datei die vorherige in audio/
-(mit einer kurzen Meldung in der Konsole).
+- es wird kopiert, nicht verschoben/gelöscht. Kopiert wird nur, was neu
+ist oder sich geändert hat (Größe/Änderungsdatum). Unveränderte Dateien
+werden nicht erneut geschrieben, damit OneDrive nicht bei jedem Lauf
+alles neu hochlädt.
 
-Existiert eine "besetzung.xlsx" (gleiche Orte wie besetzung.csv, siehe
-BESETZUNG_XLSX_CANDIDATES), wird daraus automatisch die gleichnamige
-besetzung.csv erzeugt/aktualisiert (nur wenn nötig) - die Besetzung kann
-also ganz normal in Excel gepflegt werden. Dafür wird das Python-Paket
-"openpyxl" gebraucht; fehlt es, bietet das Script an, es automatisch zu
-installieren (fragt vorher in der Konsole nach Bestätigung). Bei Nein
-oder wenn die Installation fehlschlägt, macht das Script mit einer
-eventuell vorhandenen besetzung.csv normal weiter.
+Haben MP3s aus unterschiedlichen "Partien aus ..."-Ordnern denselben
+Dateinamen, würden sie sich in audio/ gegenseitig überschreiben. Das
+Script erkennt das und stellt bei diesen Dateien die Szenen-Nummer vor
+den Namen (z.B. "1.3 - Sopran.mp3" und "14 - Sopran.mp3"), mit einer
+Warnung in der Konsole.
+
+Die Datei "besetzung.xlsx" liegt ausschließlich im Git-Repo (DEST_DIR,
+"12 GitHub/thadden27"). Aus ihr wird dort bei jedem Lauf die
+"besetzung.csv" frisch erzeugt. Der Musik-Quellordner wird für die
+Besetzungsdateien NICHT durchsucht. Die Besetzung kann also ganz normal
+in Excel gepflegt werden. Dafür wird das Python-Paket "openpyxl"
+gebraucht; fehlt es, bietet das Script an, es automatisch zu installieren
+(fragt vorher in der Konsole nach Bestätigung). Fehlt die Excel-Datei
+oder kann sie nicht umgewandelt werden, bricht das Script ab, OHNE etwas
+zu kopieren oder hochzuladen - eine alte besetzung.csv wird bewusst
+nicht ersatzweise verwendet.
+Tipp: Die Abschnitts-Spalte in Excel als "Text" formatieren. Sonst macht
+Excel z.B. aus "1.10" die Zahl 1,1 - das Script warnt in diesem Fall.
 
 Außerdem prüft das Script anhand von "besetzung.csv" (Liste der
-gültigen Abschnitte - wird in DEST_DIR und SOURCE_DIR gesucht), ob es im
-Quellordner MP3s oder PDFs gibt, die KEINEM gültigen Abschnitt zugeordnet
-werden können (weil kein erkennbares Zahlen-Präfix wie "1.1 ..." im
-Ordner-/Dateinamen steht, ODER weil die erkannte Nummer gar nicht in
-besetzung.csv vorkommt). Diese Dateien werden TROTZDEM ganz normal nach
-audio/ bzw. noten/ kopiert (nur eben ohne Eintrag in dateien.json) und
-am Ende als "nicht zugeordnet" aufgelistet - das Script wartet dabei auf
-[Enter], um die Liste zu bestätigen. Fehlt besetzung.csv ganz, wird nur
-anhand des erkennbaren Zahlen-Präfixes entschieden (wie zuvor).
+gültigen Abschnitte), ob es im Quellordner MP3s, PDFs oder TXTs gibt, die
+KEINEM gültigen Abschnitt zugeordnet werden können (weil kein erkennbares
+Zahlen-Präfix wie "1.1 ..." im Ordner-/Dateinamen steht, ODER weil die
+erkannte Nummer gar nicht in besetzung.csv vorkommt). Diese Dateien
+werden TROTZDEM ganz normal nach audio/, noten/ bzw. TXT/ kopiert (nur
+eben ohne Eintrag in dateien.json) und am Ende als "nicht zugeordnet"
+aufgelistet - das Script wartet dabei auf [Enter], um die Liste zu
+bestätigen.
 
-Danach prüft das Script, ob in audio/ bzw. noten/ Dateien liegen, die im
-Quellordner nicht mehr existieren (z.B. weil dort etwas umbenannt oder
-gelöscht wurde) - diese "verwaisten" Dateien werden aufgelistet, und das
-Script fragt, ob sie gelöscht werden sollen. Gelöscht wird dabei IMMER
-nur im Zielordner (Git-Repo), der Quellordner (OneDrive) bleibt davon
-unberührt.
+Danach prüft das Script, ob in audio/, noten/ bzw. TXT/ Dateien liegen,
+die nicht (mehr) aus dem Quellordner stammen - z.B. weil eine Stimme
+weggefallen ist, eine Datei umbenannt/gelöscht oder ein ganzer
+"Partien aus ..."-Ordner entfernt wurde. Das gilt für ALLE Dateien in
+diesen Ordnern, egal welcher Dateityp. Diese "verwaisten" Dateien werden
+aufgelistet, und das Script fragt, ob sie gelöscht werden sollen.
+Gelöscht wird dabei IMMER nur im Zielordner (Git-Repo), der Quellordner
+(OneDrive) bleibt davon unberührt. In dateien.json tauchen verwaiste
+Dateien in keinem Fall mehr auf - auch dann nicht, wenn man das Löschen
+ablehnt (dann liegen sie nur noch ungenutzt im Repo).
 
 Am Ende bietet das Script an, die Änderungen in DEST_DIR gleich zu
 committen und zu pushen (fragt dafür in der Konsole nach Bestätigung
-und nach der Commit-Nachricht). DEST_DIR muss dafür ein bestehendes
-Git-Repo mit eingerichtetem Remote sein (git clone / git remote add
-vorher einmalig von Hand erledigen).
+und nach der Commit-Nachricht). Gepusht wird der aktuell ausgecheckte
+Branch (siehe GIT_BRANCH). DEST_DIR muss dafür ein bestehendes Git-Repo
+mit eingerichtetem Remote sein (git clone / git remote add vorher
+einmalig von Hand erledigen).
+
+Läuft das Script ohne Tastatur-Eingabe (z.B. automatisch gestartet),
+gilt bei allen Rückfragen "Nein": es wird dann nichts installiert,
+nichts gelöscht und nichts gepusht.
 
 ANPASSEN:
   - SOURCE_SUBPATH: Unterordner-Pfad INNERHALB von OneDrive, in dem der
@@ -95,9 +113,8 @@ ANPASSEN:
   - IGNORE_FILENAMES: Dateinamen, die ganz normal kopiert werden (auch
     erneut, wenn sich was geändert hat), aber NICHT der Abschnitts-
     Zuordnung unterworfen werden: kein Eintrag in dateien.json, nicht in
-    der "nicht zugeordnet"-Liste, nie als "verwaist" gemeldet/zum Löschen
-    vorgeschlagen - z.B. für eine allgemeine Infodatei ohne Bezug zu einem
-    einzelnen Abschnitt.
+    der "nicht zugeordnet"-Liste - z.B. für eine allgemeine Infodatei
+    ohne Bezug zu einem einzelnen Abschnitt.
   - PDF_FOLDER: Name des PDF-Unterordners in SOURCE_DIR
   - TXT_FOLDER: Name des TXT-Unterordners in SOURCE_DIR
   - PARTIEN_PREFIX: Anfang der Audio-Unterordnernamen in SOURCE_DIR
@@ -106,13 +123,12 @@ ANPASSEN:
     dateien.json stehen)
   - GIT_AUTO_COMMIT_PUSH: auf False setzen, um den Commit/Push-Teil
     komplett zu deaktivieren (dann wird nur kopiert + dateien.json
-    geschrieben, wie bisher)
-  - BESETZUNG_CSV_CANDIDATES: Pfade, an denen nach "besetzung.csv"
-    gesucht wird (der erste gefundene Treffer gewinnt). Eigenen Pfad bei
-    Bedarf vorne in die Liste einfügen.
-  - BESETZUNG_XLSX_CANDIDATES: dasselbe für "besetzung.xlsx" - wird
-    gefunden, automatisch in die gleichnamige .csv umgewandelt (braucht
-    "openpyxl" - wird bei Bedarf mit Rückfrage automatisch installiert)
+    geschrieben)
+  - GIT_REMOTE / GIT_BRANCH: wohin gepusht wird. GIT_BRANCH = None
+    bedeutet: der aktuell ausgecheckte Branch.
+  - BESETZUNG_XLSX / BESETZUNG_CSV: Die Dateien "besetzung.xlsx" und
+    "besetzung.csv" liegen ausschließlich in DEST_DIR (12 GitHub/thadden27),
+    NICHT im Musik-Quellordner.
 """
 
 import os
@@ -145,8 +161,8 @@ def find_onedrive_dir():
     Sucht direkt im Benutzerordner (~, z.B. "C:\\Users\\flori") nach dem
     OneDrive-Ordner. Der heißt je nach Rechner/Konto unterschiedlich
     (z.B. "OneDrive", "OneDrive - thaddenschule.de", ...) - deshalb wird
-    hier NICHT mehr ein fest eingetragener Name erwartet, sondern nach
-    allen Ordnern gesucht, deren Name mit "onedrive" beginnt (Groß-/
+    hier NICHT ein fest eingetragener Name erwartet, sondern nach allen
+    Ordnern gesucht, deren Name mit "onedrive" beginnt (Groß-/
     Kleinschreibung egal).
 
     Gibt den vollständigen Pfad zum gefundenen OneDrive-Ordner zurück,
@@ -196,7 +212,7 @@ if _ONEDRIVE_DIR:
     # Quellordner: hier liegen die "Partien aus ..."-Ordner und "pdf/".
     SOURCE_DIR = os.path.join(_ONEDRIVE_DIR, *SOURCE_SUBPATH)
     # Zielordner: lokales Git-Repo, in dem audio/, noten/ und dateien.json
-    # landen sollen - liegt jetzt ebenfalls in OneDrive.
+    # landen sollen - liegt ebenfalls in OneDrive.
     DEST_DIR = os.path.join(_ONEDRIVE_DIR, *DEST_SUBPATH)
 else:
     # Kein OneDrive-Ordner gefunden - Pfade trotzdem zusammenbauen (unter
@@ -214,10 +230,9 @@ PARTIEN_PREFIX = "Partien aus "  # Unterordner-Präfix für MP3-Ordner
 # Dateinamen (nur der Dateiname, ohne Pfad - Groß-/Kleinschreibung egal),
 # die das Script GANZ NORMAL kopiert (auch erneut, wenn sich was geändert
 # hat), aber NICHT der Abschnitts-Zuordnung unterwirft: kein Eintrag in
-# dateien.json, taucht nicht in der "nicht zugeordnet"-Liste auf, wird nie
-# als "verwaist" gemeldet/zum Löschen vorgeschlagen. Für allgemeine
-# Dateien ohne Bezug zu einem einzelnen Abschnitt, z.B. eine Datei mit
-# generellen Infos zum Stück statt zu einer Szene.
+# dateien.json, taucht nicht in der "nicht zugeordnet"-Liste auf. Für
+# allgemeine Dateien ohne Bezug zu einem einzelnen Abschnitt, z.B. eine
+# Datei mit generellen Infos zum Stück statt zu einer Szene.
 IGNORE_FILENAMES = {
     "Generelle Informationen zum Stück.txt",
 }
@@ -237,6 +252,8 @@ LYRICS_PATTERN = re.compile(r'[_\s-]lyrics\.txt$', re.IGNORECASE)
 def is_lyrics_file(filename):
     """True, wenn der Dateiname auf '_Lyrics.txt' endet (siehe LYRICS_PATTERN)."""
     return bool(LYRICS_PATTERN.search(os.path.basename(filename)))
+
+
 _IGNORE_FILENAMES_LOWER = {n.lower() for n in IGNORE_FILENAMES}
 
 # Namen der Zielordner in DEST_DIR - gleichzeitig die Pfade, wie sie in
@@ -256,39 +273,76 @@ OUTPUT_FILE = os.path.join(DEST_DIR, "dateien.json")
 # Nach dem Kopieren in der Konsole fragen, ob committet + gepusht werden
 # soll (inkl. Abfrage der Commit-Nachricht). False = nur kopieren, kein Git.
 GIT_AUTO_COMMIT_PUSH = True
+# Wohin gepusht wird. GIT_BRANCH = None -> aktuell ausgecheckter Branch.
+GIT_REMOTE = "origin"
+GIT_BRANCH = None
 
-# Kandidaten-Pfade für "besetzung.csv" (Liste der gültigen Abschnitte).
-# Das Script probiert diese der Reihe nach durch und nimmt die erste
-# Datei, die existiert. Wird keine gefunden, gilt jede per Zahlen-Präfix
-# erkannte ID automatisch als gültig (altes Verhalten ohne CSV-Abgleich).
-BESETZUNG_CSV_CANDIDATES = [
-    os.path.join(DEST_DIR, "besetzung.csv"),
-    os.path.join(SOURCE_DIR, "besetzung.csv"),
-]
+# Die Besetzungsdateien liegen AUSSCHLIESSLICH in DEST_DIR, also im lokalen
+# Git-Repo "12 GitHub/thadden27". Die Excel-Datei ist die Quelle; die CSV
+# wird daneben bei jedem Lauf frisch erzeugt.
+BESETZUNG_XLSX = os.path.join(DEST_DIR, "besetzung.xlsx")
+BESETZUNG_CSV = os.path.join(DEST_DIR, "besetzung.csv")
 
-# Kandidaten-Pfade für "besetzung.xlsx". Existiert eine davon, wird daraus
-# automatisch die gleichnamige .csv im selben Ordner erzeugt/aktualisiert
-# (nur wenn die .csv fehlt oder älter ist als die .xlsx) - die Besetzung
-# kann also ganz normal in Excel gepflegt werden, ohne von Hand als CSV
-# exportieren zu müssen. Braucht das Paket "openpyxl" (pip install
-# openpyxl); fehlt es, wird das klar gemeldet und stattdessen direkt mit
-# einer vorhandenen besetzung.csv weitergemacht (falls es eine gibt).
-BESETZUNG_XLSX_CANDIDATES = [
-    os.path.join(DEST_DIR, "besetzung.xlsx"),
-    os.path.join(SOURCE_DIR, "besetzung.xlsx"),
-]
+# Präfix für Zwischendateien beim Kopieren. Bleiben solche Dateien nach
+# einem Absturz liegen, werden sie beim nächsten Lauf ohne Nachfrage
+# entfernt (siehe find_orphans()).
+TMP_PREFIX = ".tmp_kopie_"
+
+# Systemdateien, die Windows/macOS/OneDrive selbst in Ordnern anlegen -
+# werden beim Aufräumen nie als "verwaist" gemeldet.
+SYSTEM_FILENAMES = {"desktop.ini", "thumbs.db", ".ds_store"}
 # ----------------------------------------------------------------------
 
-# Zählt Probleme während des Laufs (Kopier-/Löschfehler), damit am Ende
-# eine ehrliche "Alles erfolgreich"- oder Fehler-Zusammenfassung möglich ist.
-STATS = {"copy_errors": 0, "delete_errors": 0}
+# Zählt Probleme und Kopiervorgänge während des Laufs, damit am Ende eine
+# ehrliche Zusammenfassung möglich ist.
+STATS = {"copy_errors": 0, "delete_errors": 0,
+         "copied_new": 0, "copied_updated": 0, "unchanged": 0}
 
 # Spaltennamen (klein geschrieben), die als "Abschnitt-Spalte" in
-# besetzung.csv erkannt werden.
+# besetzung.xlsx/.csv erkannt werden.
 ABSCHNITT_SPALTENNAMEN = (
     "abschnitt", "abschnitt-id", "abschnittid", "abschnittsnummer",
     "szene", "szene-id", "szenenid", "id", "nr", "nummer",
 )
+
+
+def ask_yes_no(question, default_yes):
+    """
+    Stellt eine Ja/Nein-Frage in der Konsole. Leere Eingabe = default_yes.
+    Gibt es keine Tastatur-Eingabe (EOF, z.B. automatisch gestartet), gilt
+    IMMER "Nein" - damit nie unbeaufsichtigt installiert, gelöscht oder
+    gepusht wird.
+    """
+    hint = "[J/n]" if default_yes else "[j/N]"
+    try:
+        answer = input(f"{question} {hint}: ").strip().lower()
+    except EOFError:
+        print()
+        return False
+    if answer == "":
+        return default_yes
+    return answer in ("j", "ja", "y", "yes")
+
+
+def write_text_atomic(path, text, encoding="utf-8"):
+    """
+    Schreibt 'text' nach 'path', und zwar erst in eine Zwischendatei im
+    selben Ordner, die dann in einem Schritt umbenannt wird. Bricht das
+    Schreiben ab (Absturz, voller Datenträger, ...), bleibt die alte Datei
+    unversehrt statt halb geschrieben zurück.
+    """
+    folder = os.path.dirname(path) or "."
+    tmp_fd, tmp_path = tempfile.mkstemp(dir=folder, prefix=".tmp_", suffix=".part")
+    try:
+        with os.fdopen(tmp_fd, "w", encoding=encoding, newline="") as f:
+            f.write(text)
+        os.replace(tmp_path, path)
+    except Exception:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def _cell_to_str(value):
@@ -312,6 +366,59 @@ def _cell_to_str(value):
     return str(value)
 
 
+def find_id_col(header_row):
+    """
+    Sucht in der Kopfzeile die Spalte mit der Abschnitts-ID (per
+    Spaltenname, siehe ABSCHNITT_SPALTENNAMEN, sonst jede Spalte mit
+    "abschnitt"/"szene" im Namen). Gibt den Spaltenindex zurück oder None.
+    """
+    header = [("" if h is None else str(h)).strip().lower() for h in header_row]
+    idx = next((i for i, name in enumerate(header) if name in ABSCHNITT_SPALTENNAMEN), None)
+    if idx is None:
+        idx = next((i for i, name in enumerate(header)
+                    if "abschnitt" in name or "szene" in name), None)
+    return idx
+
+
+def warn_numeric_scene_ids(raw_rows):
+    """
+    Warnt, wenn Abschnitts-Nummern in der Excel-Datei als Zahl oder Datum
+    statt als Text gespeichert sind. Excel macht dann z.B. aus "1.10" die
+    Zahl 1,1 - und "1.10" wäre von "1.1" nicht mehr zu unterscheiden.
+    Ganze Zahlen (z.B. 14) sind unproblematisch und werden nicht gemeldet.
+    """
+    if not raw_rows:
+        return
+    id_col = find_id_col(raw_rows[0])
+    if id_col is None:
+        id_col = 0
+
+    suspicious = []
+    for rownum, row in enumerate(raw_rows[1:], start=2):
+        if id_col >= len(row):
+            continue
+        v = row[id_col]
+        if isinstance(v, bool):
+            continue
+        if isinstance(v, float) and not v.is_integer():
+            suspicious.append((rownum, _cell_to_str(v), "Zahl"))
+        elif hasattr(v, "day") and hasattr(v, "month"):
+            suspicious.append((rownum, _cell_to_str(v), "Datum"))
+
+    if not suspicious:
+        return
+
+    print(f"  [WARNUNG] {len(suspicious)} Abschnitts-Nummer(n) in 'besetzung.xlsx' sind als")
+    print("     Zahl/Datum statt als Text gespeichert. Excel kann dabei z.B. aus")
+    print("     \"1.10\" die Zahl 1,1 machen - dann wäre 1.10 von 1.1 nicht mehr")
+    print("     zu unterscheiden. Bitte die Spalte in Excel als \"Text\" formatieren")
+    print("     und die Nummern neu eintippen. Betroffen:")
+    for rownum, shown, kind in suspicious[:10]:
+        print(f"       - Zeile {rownum}: {shown}  ({kind})")
+    if len(suspicious) > 10:
+        print(f"       ... und {len(suspicious) - 10} weitere")
+
+
 def ensure_openpyxl():
     """
     Versucht "import openpyxl" - falls das Paket fehlt, wird in der
@@ -328,12 +435,7 @@ def ensure_openpyxl():
 
     print("  [Info]  Paket 'openpyxl' wird für die xlsx->csv-Umwandlung gebraucht,")
     print("     ist aber nicht installiert.")
-    try:
-        answer = input("  Jetzt automatisch installieren (pip install openpyxl)? [J/n]: ").strip().lower()
-    except EOFError:
-        answer = "j"
-
-    if answer not in ("", "j", "ja", "y", "yes"):
+    if not ask_yes_no("  Jetzt automatisch installieren (pip install openpyxl)?", default_yes=True):
         print("  Übersprungen. Von Hand installierbar mit:")
         print(f"       {sys.executable} -m pip install openpyxl")
         return None
@@ -374,24 +476,27 @@ def convert_xlsx_to_csv(xlsx_path, csv_path):
     openpyxl = ensure_openpyxl()
     if openpyxl is None:
         print(f"     '{os.path.basename(xlsx_path)}' kann so nicht in eine CSV")
-        print("     umgewandelt werden (oder die Datei einmalig von Hand in Excel")
-        print("     als CSV speichern).")
+        print("     umgewandelt werden.")
         return False
 
     try:
         wb = openpyxl.load_workbook(xlsx_path, data_only=True, read_only=True)
         try:
             ws = wb.active
-            rows = [[_cell_to_str(v) for v in row] for row in ws.iter_rows(values_only=True)]
+            raw_rows = [list(row) for row in ws.iter_rows(values_only=True)]
         finally:
             wb.close()
     except Exception as e:
         print(f"  [FEHLER] Konnte '{xlsx_path}' nicht lesen: {e}")
         return False
 
+    warn_numeric_scene_ids(raw_rows)
+    rows = [[_cell_to_str(v) for v in row] for row in raw_rows]
+
+    buf = io.StringIO()
+    csv.writer(buf, delimiter=";", lineterminator="\r\n").writerows(rows)
     try:
-        with open(csv_path, "w", encoding="utf-8-sig", newline="") as f:
-            csv.writer(f, delimiter=";").writerows(rows)
+        write_text_atomic(csv_path, buf.getvalue(), encoding="utf-8-sig")
     except OSError as e:
         print(f"  [FEHLER] Konnte '{csv_path}' nicht schreiben: {e}")
         return False
@@ -402,103 +507,62 @@ def convert_xlsx_to_csv(xlsx_path, csv_path):
 
 
 def sync_besetzung_csv_from_xlsx():
+    """Erzeugt IMMER besetzung.csv aus der Excel-Datei im Git-Repo.
+
+    Dabei wird nicht auf Dateizeitstempel vertraut (OneDrive und Excel
+    koennen Zeitstempel unterschiedlich setzen). Fehlt die XLSX oder
+    schlaegt die Konvertierung fehl, ist dies ein Fehler und das gesamte
+    Skript darf keine alte CSV stillschweigend weiterverwenden.
     """
-    Prüft BESETZUNG_XLSX_CANDIDATES der Reihe nach; existiert eine
-    besetzung.xlsx, wird daraus die gleichnamige besetzung.csv im selben
-    Ordner erzeugt/aktualisiert - aber nur, wenn diese fehlt oder älter
-    als die xlsx ist (spart unnötige Konvertierungen bei jedem Lauf).
-    """
-    for xlsx_path in BESETZUNG_XLSX_CANDIDATES:
-        if not os.path.isfile(xlsx_path):
-            continue
-        csv_path = os.path.splitext(xlsx_path)[0] + ".csv"
-        stale = not os.path.isfile(csv_path) or \
-            os.path.getmtime(xlsx_path) > os.path.getmtime(csv_path)
-        if stale:
-            print(f"  [Info]  '{os.path.basename(xlsx_path)}' gefunden - erzeuge/aktualisiere CSV ...")
-            convert_xlsx_to_csv(xlsx_path, csv_path)
-        break  # nur die erste gefundene xlsx verwenden (gleiche Prioritaet wie bei den CSV-Kandidaten)
+    if not os.path.isfile(BESETZUNG_XLSX):
+        print(f"  [FEHLER] Excel-Quelldatei fehlt: {BESETZUNG_XLSX}")
+        print("     Bitte besetzung.xlsx in den GitHub-Ordner thadden27 legen.")
+        print("     Die alte besetzung.csv wird NICHT ersatzweise verwendet.")
+        return False
+
+    print("  [Info] 'besetzung.xlsx' gefunden - CSV wird immer frisch erzeugt.")
+    return convert_xlsx_to_csv(BESETZUNG_XLSX, BESETZUNG_CSV)
 
 
 def load_valid_scene_ids():
     """
-    Lädt die Liste der gültigen Abschnitts-IDs aus "besetzung.csv"
-    (erster Treffer aus BESETZUNG_CSV_CANDIDATES). Erkennt automatisch
-    das Trennzeichen (";" oder ",") und die Spalte mit der Abschnitts-ID
-    (per Spaltenname, sonst wird die erste Spalte genommen).
-
-    Existiert eine besetzung.xlsx (siehe BESETZUNG_XLSX_CANDIDATES), wird
-    die passende CSV zuerst automatisch daraus erzeugt/aktualisiert.
+    Erzeugt besetzung.csv frisch aus besetzung.xlsx und liest daraus die
+    gültigen Abschnitts-IDs (Spalte per Name erkannt, sonst erste Spalte).
 
     Gibt (valid_ids, csv_path) zurück:
-      valid_ids = set() der gültigen IDs, oder ein LEERES set(), wenn
-                  keine besetzung.csv gefunden/gelesen werden konnte -
-                  dann wird NICHT gegen die Besetzung geprüft (jede per
-                  Zahlen-Präfix erkannte ID gilt automatisch als gültig).
+      valid_ids = set() der gültigen IDs. Ist es LEER (Besetzung enthält
+                  keine erkennbaren Nummern), wird NICHT gegen die
+                  Besetzung geprüft - jede per Zahlen-Präfix erkannte ID
+                  gilt dann als gültig.
+                  None, wenn die Excel-Datei fehlt oder nicht umgewandelt
+                  werden konnte -> main() bricht dann ab.
       csv_path  = Pfad der benutzten CSV, oder None.
     """
-    sync_besetzung_csv_from_xlsx()
+    if not sync_besetzung_csv_from_xlsx():
+        return None, None
 
-    csv_path = next((c for c in BESETZUNG_CSV_CANDIDATES if os.path.isfile(c)), None)
-
-    if not csv_path:
-        searched = ", ".join(BESETZUNG_CSV_CANDIDATES)
-        print(f"  [WARNUNG]  Keine 'besetzung.csv' gefunden (gesucht: {searched}).")
-        print("     Abschnitts-Zuordnung wird NICHT gegen eine Besetzung geprüft -")
-        print("     es zählt nur, ob eine Nummer im Namen erkannt wurde.")
-        return set(), None
-
+    # Die CSV hat das Script gerade selbst geschrieben (UTF-8, ";") - die
+    # Kodierung oder das Trennzeichen muss hier also nicht geraten werden.
     try:
-        with open(csv_path, 'rb') as f:
-            raw = f.read()
+        with open(BESETZUNG_CSV, "r", encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.reader(f, delimiter=";"))
     except OSError as e:
-        print(f"  [FEHLER] Konnte '{csv_path}' nicht lesen: {e}")
-        print("     Abschnitts-Zuordnung wird NICHT gegen eine Besetzung geprüft.")
-        return set(), None
+        print(f"  [FEHLER] Konnte '{BESETZUNG_CSV}' nicht lesen: {e}")
+        return None, None
 
-    # besetzung.csv kommt oft aus Excel/Windows und ist dann NICHT UTF-8,
-    # sondern Windows-1252 ("ANSI") - einfach mehrere Kodierungen der
-    # Reihe nach probieren, statt beim ersten Umlaut abzustürzen.
-    text = None
-    used_encoding = None
-    for enc in ("utf-8-sig", "cp1252", "latin-1"):
-        try:
-            text = raw.decode(enc)
-            used_encoding = enc
-            break
-        except UnicodeDecodeError:
-            continue
-    if text is None:
-        text = raw.decode("utf-8", errors="replace")
-        used_encoding = "utf-8 (mit Ersatzzeichen fuer unbekannte Bytes)"
-    if used_encoding != "utf-8-sig":
-        print(f"  [Info]  '{os.path.basename(csv_path)}' ist nicht UTF-8 - wurde")
-        print(f"     als '{used_encoding}' gelesen.")
-
-    sample = text[:4096]
-    try:
-        dialect = csv.Sniffer().sniff(sample, delimiters=";,\t")
-    except csv.Error:
-        dialect = csv.excel
-        dialect.delimiter = ';' if sample.count(';') >= sample.count(',') else ','
-    rows = list(csv.reader(io.StringIO(text), dialect))
-
+    name = os.path.basename(BESETZUNG_CSV)
     if not rows or not rows[0]:
-        print(f"  [WARNUNG]  '{csv_path}' ist leer.")
-        return set(), csv_path
+        print(f"  [WARNUNG]  '{name}' ist leer - Abschnitts-Zuordnung wird NICHT")
+        print("     gegen eine Besetzung geprüft.")
+        return set(), BESETZUNG_CSV
 
-    header = [h.strip().lower() for h in rows[0]]
-    id_col = next((i for i, name in enumerate(header) if name in ABSCHNITT_SPALTENNAMEN), None)
-    if id_col is None:
-        id_col = next((i for i, name in enumerate(header)
-                        if "abschnitt" in name or "szene" in name), None)
-
+    id_col = find_id_col(rows[0])
     if id_col is None:
         id_col = 0
-        print(f"  [Info]  Keine Spalte 'Abschnitt'/'Szene' in '{os.path.basename(csv_path)}'")
+        print(f"  [Info]  Keine Spalte 'Abschnitt'/'Szene' in '{name}'")
         print(f"     erkannt - benutze stattdessen die erste Spalte ('{rows[0][0]}').")
     else:
-        print(f"  [Info]  Abschnitts-Spalte in '{os.path.basename(csv_path)}': '{rows[0][id_col]}'")
+        print(f"  [Info]  Abschnitts-Spalte in '{name}': '{rows[0][id_col]}'")
 
     valid_ids = set()
     for row in rows[1:]:
@@ -508,8 +572,12 @@ def load_valid_scene_ids():
         if m:
             valid_ids.add(m.group(1))
 
-    print(f"  [OK] {len(valid_ids)} gültige Abschnitts-ID(s) aus '{os.path.basename(csv_path)}' geladen.")
-    return valid_ids, csv_path
+    if not valid_ids:
+        print(f"  [WARNUNG]  Keine Abschnitts-Nummern in '{name}' gefunden -")
+        print("     Abschnitts-Zuordnung wird NICHT gegen die Besetzung geprüft.")
+    else:
+        print(f"  [OK] {len(valid_ids)} gültige Abschnitts-ID(s) aus '{name}' geladen.")
+    return valid_ids, BESETZUNG_CSV
 
 
 def paths_overlap(a, b):
@@ -547,51 +615,56 @@ def extract_scene_id(filename):
     return None
 
 
+def is_unchanged(src_path, dest_path):
+    """
+    True, wenn dest_path schon dieselbe Größe und dasselbe Änderungsdatum
+    wie src_path hat (beim Kopieren wird das Änderungsdatum mitkopiert).
+    2 Sekunden Toleranz, weil manche Dateisysteme Zeiten nur grob speichern.
+    """
+    try:
+        s = os.stat(src_path)
+        d = os.stat(dest_path)
+    except OSError:
+        return False
+    return s.st_size == d.st_size and abs(s.st_mtime - d.st_mtime) <= 2
+
+
 def copy_file(src_path, dest_dir, filename):
     """
-    Kopiert eine Datei nach dest_dir (legt den Ordner bei Bedarf an).
-    Überschreibt stillschweigend, falls dort schon eine gleichnamige
-    Datei liegt (z.B. weil zwei "Partien aus ..."-Ordner eine Datei mit
-    demselben Namen enthalten) - gibt dabei aber eine kurze Meldung aus.
+    Kopiert eine Datei als 'filename' nach dest_dir (legt den Ordner bei
+    Bedarf an) - aber nur, wenn sie dort noch fehlt oder sich geändert hat.
     Bricht bei einem Kopierfehler NICHT das ganze Script ab, sondern
     meldet den Fehler und zählt ihn für die Abschluss-Zusammenfassung.
 
+    Gibt zurück: "neu", "aktualisiert", "unverändert" oder None (Fehler).
+
     WICHTIG - Schutz vor Datenverlust im Quellordner:
-    Ein normales shutil.copy2(quelle, ziel) öffnet die Zieldatei zum
-    Schreiben (und LEERT sie damit sofort), bevor überhaupt zuende aus der
-    Quelle gelesen wurde. Sollten Quelle und Ziel durch irgendeinen Pfad-
-    Sonderfall (Groß-/Kleinschreibung, OneDrive-Verknüpfung/Reparse-Point,
-    Ordner-Überschneidung, o.ä.) auf dieselbe Datei zeigen, ginge dadurch
-    der Original-Inhalt verloren - obwohl das Script eigentlich nur
-    kopiert, nie in den Quellordner schreibt.
-    Deshalb wird hier NIE direkt in "dest_path" geschrieben: Es wird immer
-    zuerst eine NEUE, garantiert noch nicht existierende Temp-Datei im
-    Zielordner befüllt (kann also unmöglich mit der Quelle identisch
-    sein) und erst danach in einem einzigen atomaren Schritt (os.replace)
-    auf den echten Zielnamen "umbenannt". Selbst falls Quelle und Ziel
-    sich (aus welchem Grund auch immer) doch als dieselbe Datei
-    herausstellen sollten, bleibt der Inhalt dadurch garantiert erhalten -
-    es wird schlimmstenfalls die Originaldatei mit einer 1:1-Kopie ihres
-    eigenen Inhalts überschrieben, aber niemals geleert.
+    Es wird NIE direkt in die Zieldatei geschrieben, sondern immer erst in
+    eine NEUE Zwischendatei im Zielordner (kann also unmöglich mit der
+    Quelle identisch sein), die danach in einem Schritt (os.replace) auf
+    den echten Zielnamen umbenannt wird. Selbst falls Quelle und Ziel durch
+    einen Pfad-Sonderfall (Groß-/Kleinschreibung, OneDrive-Verknüpfung, ...)
+    doch dieselbe Datei sein sollten, wird die Quelle dadurch nie geleert.
     """
+    dest_path = os.path.join(dest_dir, filename)
     try:
         os.makedirs(dest_dir, exist_ok=True)
-        dest_path = os.path.join(dest_dir, filename)
         already_existed = os.path.exists(dest_path)
+        if already_existed and is_unchanged(src_path, dest_path):
+            STATS["unchanged"] += 1
+            return "unverändert"
 
         tmp_fd, tmp_path = tempfile.mkstemp(
-            dir=dest_dir, prefix=".tmp_kopie_", suffix=os.path.splitext(filename)[1]
+            dir=dest_dir, prefix=TMP_PREFIX, suffix=os.path.splitext(filename)[1]
         )
+        os.close(tmp_fd)
         try:
-            with open(src_path, "rb") as fsrc, os.fdopen(tmp_fd, "wb") as ftmp:
-                shutil.copyfileobj(fsrc, ftmp)
+            shutil.copyfile(src_path, tmp_path)
             try:
+                # Änderungsdatum mitkopieren - wird für is_unchanged() gebraucht.
                 shutil.copystat(src_path, tmp_path)
             except OSError:
-                pass  # Zeitstempel/Rechte kopieren ist "nice to have", kein Abbruchgrund
-
-            if already_existed:
-                print(f"     * überschreibe vorhandene Datei im Zielordner: {filename}")
+                pass  # dann wird die Datei beim nächsten Lauf eben erneut kopiert
             os.replace(tmp_path, dest_path)
         except Exception:
             try:
@@ -602,6 +675,22 @@ def copy_file(src_path, dest_dir, filename):
     except OSError as e:
         STATS["copy_errors"] += 1
         print(f"     [FEHLER] Fehler beim Kopieren von '{filename}': {e}")
+        return None
+
+    if already_existed:
+        STATS["copied_updated"] += 1
+        return "aktualisiert"
+    STATS["copied_new"] += 1
+    return "neu"
+
+
+def _status_suffix(status):
+    """Kurzer Zusatz für die Konsolenausgabe je nach Ergebnis von copy_file()."""
+    if status is None:
+        return "  (FEHLER beim Kopieren)"
+    if status == "unverändert":
+        return ""
+    return f"  ({status})"
 
 
 def collect_audio(valid_ids):
@@ -614,27 +703,32 @@ def collect_audio(valid_ids):
     valid_ids vorkommt); nur dann landen seine MP3s auch im result-Dict
     (also in dateien.json).
 
+    Kommt derselbe Dateiname in mehreren Ordnern vor, wird bei ALLEN
+    betroffenen Dateien die Szenen-Nummer vorangestellt
+    ("1.3 - Sopran.mp3"), damit sich nichts gegenseitig überschreibt.
+
     Gibt zurück:
-      (result, source_filenames, unassigned)
-      result           = {szene_id: ["audio/dateiname.mp3", ...], ...}
-      source_filenames = set aller MP3-Dateinamen, die aktuell im
-                         Quellordner existieren - wird benutzt, um später
-                         verwaiste Dateien im Zielordner zu finden.
-      unassigned       = Liste von (ordnername, dateiname) für MP3s ohne
-                         gültigen Abschnitt (werden trotzdem kopiert,
-                         aber nicht in dateien.json aufgenommen).
+      (result, expected, unassigned)
+      result     = {szene_id: ["audio/dateiname.mp3", ...], ...}
+      expected   = set der Dateinamen (klein geschrieben), die nach diesem
+                   Lauf in audio/ liegen sollen - alles andere dort ist
+                   "verwaist" (siehe find_orphans()). None, wenn es gar
+                   keinen "Partien aus ..."-Ordner gibt.
+      unassigned = Liste von (ordnername, dateiname) für MP3s ohne
+                   gültigen Abschnitt (werden trotzdem kopiert, aber nicht
+                   in dateien.json aufgenommen).
     """
     result = {}
-    source_filenames = set()
+    expected = set()
     unassigned = []
 
-    for entry in os.scandir(SOURCE_DIR):
-        if not entry.is_dir():
-            continue
-        if not entry.name.startswith(PARTIEN_PREFIX):
+    # 1. Erst alles einsammeln (noch nichts kopieren), damit doppelte
+    #    Dateinamen über mehrere Ordner hinweg erkannt werden können.
+    folders = []
+    for entry in sorted(os.scandir(SOURCE_DIR), key=lambda x: x.name.lower()):
+        if not entry.is_dir() or not entry.name.startswith(PARTIEN_PREFIX):
             continue
 
-        # Szenen-ID aus Ordnername extrahieren und gegen besetzung.csv prüfen
         sid = extract_scene_id(entry.name)
         sid_ok = sid is not None and (not valid_ids or sid in valid_ids)
         if sid is None:
@@ -643,35 +737,61 @@ def collect_audio(valid_ids):
             print(f"  [WARNUNG]  Abschnitt '{sid}' nicht in besetzung.csv - wird trotzdem")
             print(f"     kopiert, aber nicht in dateien.json aufgenommen: {entry.name}")
 
-        # MP3s in diesem Ordner finden, IMMER kopieren, und verzeichnen
-        mp3s = []
-        for f in sorted(os.scandir(entry.path), key=lambda x: x.name.lower()):
-            if f.is_file() and f.name.lower().endswith('.mp3'):
-                source_filenames.add(f.name)
-                copy_file(f.path, AUDIO_OUT_DIR, f.name)
+        mp3s = sorted(
+            (f for f in os.scandir(entry.path) if f.is_file() and f.name.lower().endswith('.mp3')),
+            key=lambda x: x.name.lower(),
+        )
+        folders.append((entry, sid, sid_ok, mp3s))
 
-                if f.name.lower() in _IGNORE_FILENAMES_LOWER:
-                    # Wird ganz normal kopiert (auch bei Änderungen erneut),
-                    # aber NICHT der Abschnitts-Zuordnung unterworfen: kein
-                    # Eintrag in dateien.json, nicht in der "nicht
-                    # zugeordnet"-Liste, nie als "verwaist" gemeldet.
-                    print(f"  [Audio] (allgemein, kopiert, ohne Abschnitts-Zuordnung): {f.name}")
-                    continue
+    if not folders:
+        print(f"  [WARNUNG]  Kein einziger '{PARTIEN_PREFIX}...'-Ordner gefunden - keine MP3s.")
+        return result, None, unassigned
 
-                if sid_ok:
-                    github_path = f"{GITHUB_AUDIO_PATH}/{f.name}"
-                    mp3s.append(github_path)
-                    print(f"  [Audio] {sid}: {f.name}")
-                else:
-                    unassigned.append((entry.name, f.name))
-                    print(f"  [Audio] (nicht zugeordnet): {f.name}")
+    name_count = {}
+    for _, _, _, mp3s in folders:
+        for f in mp3s:
+            key = f.name.lower()
+            name_count[key] = name_count.get(key, 0) + 1
+    duplicates = {k for k, n in name_count.items() if n > 1}
 
-        if mp3s:
-            if sid not in result:
-                result[sid] = []
-            result[sid].extend(mp3s)
+    # 2. Kopieren und verzeichnen
+    for entry, sid, sid_ok, mp3s in folders:
+        files = []
+        for f in mp3s:
+            target = f.name
+            if f.name.lower() in duplicates:
+                tag = sid if sid else entry.name[len(PARTIEN_PREFIX):].strip()
+                target = f"{tag} - {f.name}"
+                print(f"  [WARNUNG]  '{f.name}' gibt es in mehreren Ordnern - wird als")
+                print(f"     '{target}' gespeichert (Ordner: {entry.name}).")
+            if target.lower() in expected:
+                # Sehr unwahrscheinlich, aber sicher ist sicher: Name ist trotzdem schon vergeben
+                base, ext = os.path.splitext(target)
+                n = 2
+                while f"{base} ({n}){ext}".lower() in expected:
+                    n += 1
+                target = f"{base} ({n}){ext}"
+                print(f"     -> Name schon vergeben, stattdessen: '{target}'")
+            expected.add(target.lower())
 
-    return result, source_filenames, unassigned
+            status = copy_file(f.path, AUDIO_OUT_DIR, target)
+            suffix = _status_suffix(status)
+
+            if f.name.lower() in _IGNORE_FILENAMES_LOWER:
+                print(f"  [Audio] (allgemein, ohne Abschnitts-Zuordnung): {target}{suffix}")
+                continue
+
+            if sid_ok:
+                files.append(f"{GITHUB_AUDIO_PATH}/{target}")
+                print(f"  [Audio] {sid}: {target}{suffix}")
+            else:
+                unassigned.append((entry.name, target))
+                print(f"  [Audio] (nicht zugeordnet): {target}{suffix}")
+
+        if files:
+            result.setdefault(sid, []).extend(files)
+
+    return result, expected, unassigned
 
 
 def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix,
@@ -692,16 +812,13 @@ def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix
     label               = Text für Konsolenausgaben (z.B. "Noten", "TXT")
 
     Gibt zurück:
-      (result, source_filenames, unassigned)
-      result           = {szene_id: ["<prefix>/dateiname.ext", ...], ...}
-      source_filenames = set aller passenden Dateinamen im Quell-
-                         Unterordner, oder None, falls dieser Unterordner
-                         gar nicht existiert (dann lässt sich nicht
-                         verlässlich sagen, was "verwaist" ist - siehe
-                         find_orphans()).
-      unassigned       = Liste von Dateinamen ohne gültigen Abschnitt
-                         (werden trotzdem kopiert, aber nicht in
-                         dateien.json aufgenommen).
+      (result, expected, unassigned)
+      result     = {szene_id: ["<prefix>/dateiname.ext", ...], ...}
+      expected   = set der Dateinamen (klein geschrieben), die nach diesem
+                   Lauf in out_dir liegen sollen, oder None, falls der
+                   Quell-Unterordner gar nicht existiert.
+      unassigned = Liste von Dateinamen ohne gültigen Abschnitt (werden
+                   trotzdem kopiert, aber nicht in dateien.json aufgenommen).
     """
     result = {}
     src_dir = os.path.join(SOURCE_DIR, source_subfolder)
@@ -710,7 +827,7 @@ def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix
         print(f"  [WARNUNG]  Kein '{source_subfolder}'-Ordner gefunden - keine {label}-Dateien.")
         return result, None, []
 
-    source_filenames = set()
+    expected = set()
     unassigned = []
 
     for f in sorted(os.scandir(src_dir), key=lambda x: x.name.lower()):
@@ -719,15 +836,12 @@ def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix
         if not f.name.lower().endswith(extension):
             continue
 
-        source_filenames.add(f.name)
-        copy_file(f.path, out_dir, f.name)
+        expected.add(f.name.lower())
+        status = copy_file(f.path, out_dir, f.name)
+        suffix = _status_suffix(status)
 
         if f.name.lower() in _IGNORE_FILENAMES_LOWER:
-            # Wird ganz normal kopiert (auch bei Änderungen erneut), aber
-            # NICHT der Abschnitts-Zuordnung unterworfen: kein Eintrag in
-            # dateien.json, nicht in der "nicht zugeordnet"-Liste, nie als
-            # "verwaist" gemeldet (siehe find_orphans()).
-            print(f"  [{label}] (allgemein, kopiert, ohne Abschnitts-Zuordnung): {f.name}")
+            print(f"  [{label}] (allgemein, ohne Abschnitts-Zuordnung): {f.name}{suffix}")
             continue
 
         sid = extract_scene_id(f.name)
@@ -735,20 +849,17 @@ def collect_flat_folder(source_subfolder, extension, out_dir, github_path_prefix
 
         if not sid_ok:
             if sid is None:
-                print(f"  [WARNUNG]  {label}-Datei ohne erkennbare ID (wird trotzdem kopiert): {f.name}")
+                print(f"  [WARNUNG]  {label}-Datei ohne erkennbare ID (wird trotzdem kopiert): {f.name}{suffix}")
             else:
                 print(f"  [WARNUNG]  Abschnitt '{sid}' nicht in besetzung.csv - '{f.name}' wird")
-                print("     trotzdem kopiert, aber nicht in dateien.json aufgenommen.")
+                print(f"     trotzdem kopiert, aber nicht in dateien.json aufgenommen.{suffix}")
             unassigned.append(f.name)
             continue
 
-        github_path = f"{github_path_prefix}/{f.name}"
-        if sid not in result:
-            result[sid] = []
-        result[sid].append(github_path)
-        print(f"  [{label}] {sid}: {f.name}")
+        result.setdefault(sid, []).append(f"{github_path_prefix}/{f.name}")
+        print(f"  [{label}] {sid}: {f.name}{suffix}")
 
-    return result, source_filenames, unassigned
+    return result, expected, unassigned
 
 
 def collect_noten(valid_ids):
@@ -765,11 +876,10 @@ def collect_txt(valid_ids):
 
 def report_unassigned(unassigned_audio, unassigned_noten, unassigned_txt):
     """
-    Zeigt MP3s/PDFs/TXTs im Quellordner an, die keinem Abschnitt (keiner
-    erkennbaren Szenen-ID) zugeordnet werden konnten und deshalb NICHT
-    mit kopiert/in dateien.json aufgenommen wurden. Wartet danach auf
-    [Enter], um die Liste zu bestätigen (reine Anzeige, es wird nichts
-    automatisch verändert).
+    Zeigt MP3s/PDFs/TXTs im Quellordner an, die keinem gültigen Abschnitt
+    zugeordnet werden konnten. Sie wurden trotzdem kopiert, stehen aber
+    NICHT in dateien.json. Wartet danach auf [Enter], um die Liste zu
+    bestätigen (reine Anzeige, es wird nichts verändert).
     """
     print(f"\n-- Nicht zugeordnete Dateien ---------------------------")
 
@@ -779,17 +889,17 @@ def report_unassigned(unassigned_audio, unassigned_noten, unassigned_txt):
         return
 
     if unassigned_audio:
-        print(f"  [Audio] {len(unassigned_audio)} MP3-Datei(en) ohne erkennbaren Abschnitt:")
+        print(f"  [Audio] {len(unassigned_audio)} MP3-Datei(en) ohne gültigen Abschnitt:")
         for ordner, name in unassigned_audio:
             print(f"    - {name}   (Ordner: {ordner})")
 
     if unassigned_noten:
-        print(f"  [Noten] {len(unassigned_noten)} PDF-Datei(en) ohne erkennbaren Abschnitt:")
+        print(f"  [Noten] {len(unassigned_noten)} PDF-Datei(en) ohne gültigen Abschnitt:")
         for name in unassigned_noten:
             print(f"    - {name}")
 
     if unassigned_txt:
-        print(f"  [TXT] {len(unassigned_txt)} TXT-Datei(en) ohne erkennbaren Abschnitt:")
+        print(f"  [TXT] {len(unassigned_txt)} TXT-Datei(en) ohne gültigen Abschnitt:")
         for name in unassigned_txt:
             print(f"    - {name}")
 
@@ -798,44 +908,53 @@ def report_unassigned(unassigned_audio, unassigned_noten, unassigned_txt):
     print("  Um sie zuzuordnen: Datei-/Ordnernamen im Quellordner mit der")
     print(f"  passenden Abschnitts-Nummer beginnen lassen (z.B. \"1.1 ...\",")
     print(f"  bei Audio-Ordnern mit Präfix \"{PARTIEN_PREFIX}\") UND sicherstellen,")
-    print("  dass diese Nummer auch in besetzung.csv vorkommt.")
+    print("  dass diese Nummer auch in besetzung.xlsx vorkommt.")
 
     try:
         input("\n  [Enter] um diese Liste zu bestätigen und fortzufahren...")
     except EOFError:
-        pass
+        print()
 
 
-def find_orphans(out_dir, source_filenames, extension):
+def find_orphans(out_dir, expected):
     """
-    Findet Dateien mit 'extension' in out_dir, deren Name NICHT (mehr) in
-    source_filenames vorkommt - also im Quellordner nicht mehr existiert.
-    Gibt [] zurück, wenn source_filenames None ist (siehe collect_noten)
-    oder out_dir noch gar nicht existiert - dann lässt sich nichts
-    Verlässliches über "verwaist" aussagen, also lieber nichts vorschlagen.
+    Findet ALLE Dateien in out_dir (egal welcher Dateityp), deren Name
+    nicht in 'expected' vorkommt - also Dateien, die bei diesem Lauf nicht
+    aus dem Quellordner kopiert wurden (Stimme weggefallen, umbenannt,
+    gelöscht, Ordner entfernt, ...). Groß-/Kleinschreibung wird ignoriert.
 
-    Dateien aus IGNORE_FILENAMES werden nie als "verwaist" gemeldet (und
-    das Script fragt deshalb auch nie nach, ob sie gelöscht werden sollen)
-    - sie werden ja absichtlich nicht aus der Quelle nachverfolgt, siehe
-    collect_audio()/collect_flat_folder().
+    Ausnahmen: versteckte Dateien (Name beginnt mit ".") und Systemdateien
+    (siehe SYSTEM_FILENAMES) werden nie gemeldet. Liegengebliebene
+    Zwischendateien eines abgebrochenen Kopiervorgangs (TMP_PREFIX) werden
+    ohne Nachfrage entfernt - sie stammen vom Script selbst.
     """
-    if source_filenames is None or not os.path.isdir(out_dir):
+    if not os.path.isdir(out_dir):
         return []
     orphans = []
     for f in sorted(os.scandir(out_dir), key=lambda x: x.name.lower()):
-        if f.is_file() and f.name.lower().endswith(extension) \
-                and f.name not in source_filenames \
-                and f.name.lower() not in _IGNORE_FILENAMES_LOWER:
+        if not f.is_file():
+            continue
+        if f.name.startswith(TMP_PREFIX):
+            try:
+                os.remove(f.path)
+                print(f"  [Info] Liegengebliebene Zwischendatei entfernt: {f.name}")
+            except OSError as e:
+                print(f"  [WARNUNG] Zwischendatei konnte nicht entfernt werden: {f.name} ({e})")
+            continue
+        if f.name.startswith(".") or f.name.lower() in SYSTEM_FILENAMES:
+            continue
+        if f.name.lower() not in expected:
             orphans.append(f.name)
     return orphans
 
 
-def handle_orphans(label, out_dir, orphans):
+def handle_orphans(label, out_dir, orphans, source_missing=False):
     """
     Zeigt verwaiste Dateien (im Zielordner, aber nicht mehr im Quellordner
     vorhanden) an und fragt in der Konsole, ob sie gelöscht werden sollen.
     Löscht NUR im Zielordner (DEST_DIR) - der Quellordner wird nie
-    angefasst.
+    angefasst. source_missing=True: der Quell-Unterordner fehlt komplett,
+    dann wird besonders deutlich gewarnt.
     """
     if not orphans:
         return
@@ -844,14 +963,12 @@ def handle_orphans(label, out_dir, orphans):
     print("  die im Quellordner nicht mehr gefunden wurden:")
     for name in orphans:
         print(f"    - {name}")
+    if source_missing:
+        print("  [ACHTUNG] Der passende Quell-Ordner fehlt KOMPLETT. Falls OneDrive")
+        print("     noch nicht fertig synchronisiert ist, bitte NICHT löschen.")
 
-    try:
-        answer = input(f"  Diese {len(orphans)} Datei(en) jetzt löschen? [j/N]: ").strip().lower()
-    except EOFError:
-        answer = "n"
-
-    if answer not in ("j", "ja", "y", "yes"):
-        print("  Übersprungen - nichts gelöscht.")
+    if not ask_yes_no(f"  Diese {len(orphans)} Datei(en) jetzt löschen?", default_yes=False):
+        print("  Übersprungen - nichts gelöscht (in dateien.json stehen sie trotzdem nicht).")
         return
 
     deleted = 0
@@ -860,7 +977,7 @@ def handle_orphans(label, out_dir, orphans):
         try:
             os.remove(path)
             deleted += 1
-            print(f"    [geloescht]  gelöscht: {name}")
+            print(f"    [gelöscht]  {name}")
         except OSError as e:
             STATS["delete_errors"] += 1
             print(f"    [FEHLER] konnte nicht gelöscht werden: {name} ({e})")
@@ -895,22 +1012,65 @@ def run_git(args, cwd, timeout=None):
     return proc.returncode == 0, output
 
 
+def ignore_excel_lockfiles_in_git():
+    """Excel-Sperrdateien (~$...) ignorieren und bereits getrackte entfernen.
+
+    'git rm --cached' entfernt die Dateien NUR aus Git, nicht vom Datenträger.
+    Dadurch werden temporäre OneDrive-/Excel-Dateien nicht veröffentlicht.
+    """
+    ignore_path = os.path.join(DEST_DIR, ".gitignore")
+    try:
+        if os.path.isfile(ignore_path):
+            with open(ignore_path, "r", encoding="utf-8-sig") as f:
+                existing = f.read()
+        else:
+            existing = ""
+        rule = "~$*.xls*"
+        if rule not in existing.splitlines():
+            with open(ignore_path, "a", encoding="utf-8", newline="\n") as f:
+                if existing and not existing.endswith(("\n", "\r")):
+                    f.write("\n")
+                f.write("\n# Temporäre Excel-Sperrdateien nicht hochladen\n" + rule + "\n")
+            print("  [Git] Excel-Sperrdateien in .gitignore eingetragen.")
+    except OSError as e:
+        print(f"  [FEHLER] Konnte .gitignore nicht aktualisieren: {e}")
+        return False
+
+    ok, out = run_git(["ls-files", "-z"], DEST_DIR)
+    if not ok:
+        print(f"  [FEHLER] Konnte Git-Dateiliste nicht lesen: {out}")
+        return False
+    for relative_path in out.split("\0"):
+        name = os.path.basename(relative_path)
+        if name.startswith("~$") and name.lower().endswith((".xlsx", ".xlsm", ".xls")):
+            ok, result = run_git(["rm", "-f", "--cached", "--", relative_path], DEST_DIR)
+            if not ok:
+                print(f"  [FEHLER] Konnte Excel-Sperrdatei nicht aus Git entfernen: {result}")
+                return False
+            print(f"  [Git] Entferne temporäre Datei aus Git (lokal bleibt sie): {relative_path}")
+    return True
+
+
 def git_commit_and_push():
     """
-    Fragt in der Konsole nach, ob die kopierten Dateien in DEST_DIR
-    committet und gepusht werden sollen, und macht das dann
-    (git add -> git commit -m "..." -> git push).
+    Fragt in der Konsole nach dem Upload und führt Git aus:
+    temporäre Excel-Sperrdateien ignorieren -> git add -> ggf. commit ->
+    git pull --no-rebase <remote> <branch> -> git push <remote> <branch>.
+    So klappt der Push auch, wenn seit dem letzten Lauf auf GitHub etwas
+    geändert wurde oder ein vorheriger Push fehlgeschlagen ist.
 
     Gibt einen kurzen Status-String zurück, den main() für die
     Abschluss-Zusammenfassung auswertet:
-      "no_git"          - git nicht installiert/im PATH
-      "not_a_repo"      - DEST_DIR ist kein Git-Repository
-      "skipped_by_user" - Nutzer hat die Frage mit Nein beantwortet
-      "add_failed"      - 'git add' fehlgeschlagen
-      "no_changes"      - nichts zu committen
-      "commit_failed"   - 'git commit' fehlgeschlagen
-      "push_failed"     - Commit ok, aber 'git push' fehlgeschlagen
-      "pushed"          - alles erfolgreich committet UND gepusht
+      "no_git"            - git nicht installiert/im PATH
+      "not_a_repo"        - DEST_DIR ist kein Git-Repository
+      "no_branch"         - aktueller Branch nicht ermittelbar
+      "skipped_by_user"   - Nutzer hat die Frage mit Nein beantwortet
+      "add_failed"        - 'git add' fehlgeschlagen
+      "commit_failed"     - 'git commit' fehlgeschlagen
+      "pull_failed"       - Remote-Änderungen konnten nicht integriert werden
+      "push_failed"       - 'git push' fehlgeschlagen
+      "csv_verify_failed" - besetzung.csv fehlt im gepushten Commit
+      "pushed"            - alles erfolgreich (ggf. ohne neuen Commit) gepusht
     """
     print("\n-- Git -------------------------------------------------")
 
@@ -924,58 +1084,119 @@ def git_commit_and_push():
         print("     (Einmalig 'git clone ...' bzw. 'git init' + 'git remote add' nötig.)")
         return "not_a_repo"
 
-    try:
-        answer = input("  Änderungen committen und pushen? [J/n]: ").strip().lower()
-    except EOFError:
-        answer = "j"
-    if answer not in ("", "j", "ja", "y", "yes"):
+    branch = GIT_BRANCH
+    if not branch:
+        ok, out = run_git(["rev-parse", "--abbrev-ref", "HEAD"], DEST_DIR)
+        branch = out.strip() if ok else ""
+        if not branch or branch == "HEAD":
+            print("  [WARNUNG]  Konnte den aktuellen Git-Branch nicht ermitteln")
+            print("     (evtl. 'detached HEAD' oder noch kein Commit) - Commit/Push übersprungen.")
+            print("     Alternativ GIT_BRANCH oben im Script fest eintragen.")
+            return "no_branch"
+
+    if not ask_yes_no(f"  Änderungen committen und nach {GIT_REMOTE}/{branch} pushen?",
+                      default_yes=True):
         print("  Übersprungen - nichts committet/gepusht.")
         return "skipped_by_user"
 
-    # "-A ." statt einzelner Pfade: dadurch werden WIRKLICH ALLE Änderungen
-    # im Git-Ordner erfasst (audio/, noten/, dateien.json, besetzung.csv,
-    # besetzung.xlsx, neue/gelöschte Dateien, etc.) - nicht nur eine feste
-    # Auswahl von Pfaden, bei der leicht mal eine Datei vergessen wird.
+    # Vor dem Staging temporäre Excel-Dateien aus Git ausschließen.
+    # Sie sind technisch nur Sperrdateien von Excel und gehören nicht ins Repo.
+    if not ignore_excel_lockfiles_in_git():
+        return "add_failed"
+
+    # CSV explizit aufnehmen, auch falls sie durch globale Git-Regeln
+    # oder eine lokale .git/info/exclude ignoriert werden sollte.
+    if not os.path.isfile(BESETZUNG_CSV):
+        print("  [FEHLER] besetzung.csv fehlt; Git-Upload wird abgebrochen.")
+        return "add_failed"
+    ok, out = run_git(["add", "-f", "--", "besetzung.csv"], DEST_DIR)
+    if not ok:
+        print(f"  [FEHLER] Konnte besetzung.csv nicht zum Commit vormerken: {out}")
+        return "add_failed"
+
+    # Alle übrigen Änderungen erfassen (inkl. gelöschter Dateien).
     ok, out = run_git(["add", "-A", "."], DEST_DIR)
     if not ok:
         print(f"  [FEHLER] 'git add' fehlgeschlagen:\n{out}")
         return "add_failed"
 
-    ok, out = run_git(["status", "--porcelain"], DEST_DIR)
-    if ok and not out.strip():
-        print("  [Info] Keine Änderungen gegenüber dem letzten Commit - nichts zu tun.")
-        return "no_changes"
+    # Anzeige, ob die neu erzeugte CSV andere Inhalte als der letzte
+    # Git-Commit hat. Nur tatsächlich geänderte Inhalte erzeugen eine
+    # neue Git-Dateiversion (erneutes Speichern alleine reicht nicht).
+    ok, out = run_git(["diff", "--cached", "--name-only", "--", "besetzung.csv"], DEST_DIR)
+    if not ok:
+        print(f"  [FEHLER] CSV-Aenderungspruefung fehlgeschlagen: {out}")
+        return "add_failed"
+    if out.strip():
+        print("  [Git/CSV] besetzung.csv wurde geaendert und wird mitcommittet.")
+    else:
+        print("  [Git/CSV] Inhalt von besetzung.csv ist bereits identisch mit dem Git-Stand.")
+        print("            Sie wird deshalb nicht erneut als Dateiaenderung angezeigt.")
 
-    try:
-        message = input("  Commit-Nachricht (leer = Standardtext): ").strip()
-    except EOFError:
-        message = ""
-    if not message:
-        message = "Update dateien.json, audio und noten"
+    ok, out = run_git(["diff", "--cached", "--quiet"], DEST_DIR)
+    if ok:
+        print("  [Info] Keine neuen Änderungen zu committen.")
+    else:
+        try:
+            message = input("  Commit-Nachricht (leer = Standardtext): ").strip()
+        except EOFError:
+            print()
+            message = ""
+        if not message:
+            message = "Update dateien.json, audio und noten"
 
-    ok, out = run_git(["commit", "-m", message], DEST_DIR)
+        ok, out = run_git(["commit", "-m", message], DEST_DIR)
+        if out:
+            print(f"  {out}")
+        if not ok:
+            print("  [FEHLER] 'git commit' fehlgeschlagen - Push übersprungen.")
+            return "commit_failed"
+
+    # Auch wenn es nichts Neues zu committen gibt: Ein vorheriger Push
+    # könnte fehlgeschlagen sein, daher IMMER Remote-Abgleich und Push.
+    print(f"  -> GitHub-Änderungen abgleichen (git pull --no-rebase {GIT_REMOTE} {branch}) ...")
+    ok, out = run_git(["pull", "--no-rebase", GIT_REMOTE, branch], DEST_DIR, timeout=120)
     if out:
         print(f"  {out}")
     if not ok:
-        print("  [FEHLER] 'git commit' fehlgeschlagen - Push übersprungen.")
-        return "commit_failed"
+        print("  [FEHLER] GitHub-Änderungen konnten nicht automatisch integriert werden.")
+        print("     Kein Push durchgeführt. Die lokalen Commits bleiben erhalten.")
+        print("     Falls ein Merge-Konflikt angezeigt wird, bitte erst klären;")
+        print("     zur Wiederherstellung des Zustands davor: git merge --abort")
+        return "pull_failed"
 
-    print("  -> Push...")
-    ok, out = run_git(["push"], DEST_DIR, timeout=30)
+    print(f"  -> Push (git push {GIT_REMOTE} {branch}) ...")
+    ok, out = run_git(["push", GIT_REMOTE, branch], DEST_DIR, timeout=120)
     if out:
         print(f"  {out}")
     if ok:
         print("  [OK] Erfolgreich gepusht.")
+        # Der Push beinhaltet den aktuellen HEAD. Daher pruefen wir,
+        # ob genau diese CSV im gepushten Commit gespeichert ist.
+        exists, details = run_git(["cat-file", "-e", "HEAD:besetzung.csv"], DEST_DIR)
+        if not exists:
+            print("  [FEHLER] Im gepushten Commit fehlt besetzung.csv!", details)
+            return "csv_verify_failed"
+        identical, details = run_git(["diff", "--quiet", "HEAD", "--", "besetzung.csv"], DEST_DIR)
+        if not identical:
+            print("  [FEHLER] Lokale besetzung.csv unterscheidet sich vom gepushten Commit!")
+            print("     Bitte den Git-Status pruefen:", details)
+            return "csv_verify_failed"
+        print("  [Git/CSV] Geprueft: besetzung.csv ist im gepushten Commit enthalten")
+        print("            und stimmt mit der lokalen CSV ueberein.")
         return "pushed"
-    else:
-        print("  [FEHLER] 'git push' fehlgeschlagen - die Änderungen sind lokal")
-        print("     committet, aber NICHT auf GitHub angekommen!")
-        print("     Fehlermeldung oben prüfen (z.B. kein Internet, kein")
-        print("     Remote/Upstream eingerichtet, Merge-Konflikt, fehlende")
-        print("     Berechtigung). Danach reicht später ein einfaches")
-        print("     'git push' im Git-Ordner, ohne das Script nochmal")
-        print("     laufen zu lassen.")
-        return "push_failed"
+
+    print("  [FEHLER] 'git push' fehlgeschlagen - Änderungen sind lokal")
+    print("     committet, aber NICHT auf GitHub angekommen!")
+    print("     Bitte Fehlermeldung oben prüfen (z.B. Verbindung oder Rechte).")
+    return "push_failed"
+
+
+def _wait_and_exit():
+    try:
+        input("\n[Enter] zum Beenden...")
+    except EOFError:
+        pass
 
 
 def main():
@@ -992,10 +1213,7 @@ def main():
         print("  Mögliche Ursachen: OneDrive ist auf diesem Rechner noch nicht")
         print("  eingerichtet/fertig synchronisiert, oder der Ordner liegt an")
         print("  einer anderen Stelle als üblich.")
-        try:
-            input("\n[Enter] zum Beenden...")
-        except EOFError:
-            pass
+        _wait_and_exit()
         return
 
     if not os.path.isdir(SOURCE_DIR):
@@ -1005,10 +1223,7 @@ def main():
         print("  fertig synchronisiert, oder der Unterordner heißt hier anders")
         print("  als '09 Musik\\2025 Elisabeth'. Dann bitte SOURCE_SUBPATH oben")
         print("  im Script anpassen.")
-        try:
-            input("\n[Enter] zum Beenden...")
-        except EOFError:
-            pass
+        _wait_and_exit()
         return
 
     if not os.path.isdir(DEST_DIR):
@@ -1018,10 +1233,7 @@ def main():
         print("  '12 GitHub\\thadden27' (dann bitte DEST_SUBPATH oben im Script")
         print("  anpassen), oder das Git-Repo wurde dort noch nicht angelegt/")
         print("  geklont.")
-        try:
-            input("\n[Enter] zum Beenden...")
-        except EOFError:
-            pass
+        _wait_and_exit()
         return
 
     if paths_overlap(SOURCE_DIR, DEST_DIR):
@@ -1035,23 +1247,28 @@ def main():
         print("  zu verändern. Bitte SOURCE_SUBPATH und DEST_SUBPATH oben im")
         print("  Script prüfen - die zusammengesetzten Pfade dürfen sich in")
         print("  keinem Fall überschneiden.")
-        try:
-            input("\n[Enter] zum Beenden...")
-        except EOFError:
-            pass
+        _wait_and_exit()
         return
 
     print("-- Besetzung (gültige Abschnitte) ----------------------")
-    valid_ids, besetzung_csv_path = load_valid_scene_ids()
+    valid_ids, _ = load_valid_scene_ids()
+    if valid_ids is None:
+        print("\n[FEHLER] Abbruch: besetzung.xlsx konnte nicht erfolgreich in CSV umgewandelt werden.")
+        print("         Es werden keine Dateien kopiert oder zu GitHub gepusht.")
+        _wait_and_exit()
+        return
 
     print("\n-- Audio (MP3) -> wird nach audio/ kopiert -------------")
-    audio, audio_source_files, unassigned_audio = collect_audio(valid_ids)
+    audio, audio_expected, unassigned_audio = collect_audio(valid_ids)
 
     print("\n-- Noten (PDF) -> wird nach noten/ kopiert -------------")
-    noten, noten_source_files, unassigned_noten = collect_noten(valid_ids)
+    noten, noten_expected, unassigned_noten = collect_noten(valid_ids)
 
     print(f"\n-- TXT -> wird nach {GITHUB_TXT_PATH}/ kopiert -------------")
-    txt, txt_source_files, unassigned_txt = collect_txt(valid_ids)
+    txt, txt_expected, unassigned_txt = collect_txt(valid_ids)
+
+    print(f"\n  Kopiert: {STATS['copied_new']} neu, {STATS['copied_updated']} aktualisiert, "
+          f"{STATS['unchanged']} unverändert (übersprungen).")
 
     # Liedtexte ("..._Lyrics.txt") von den normalen Beschreibungen trennen
     lyrics = {}
@@ -1084,13 +1301,13 @@ def main():
         result[sid] = entry
 
     # Generelle Infos zum Stück (falls vorhanden) als "_info" eintragen
-    if txt_source_files and INFO_FILENAME in txt_source_files:
+    if txt_expected and INFO_FILENAME.lower() in txt_expected:
         result["_info"] = [f"{GITHUB_TXT_PATH}/{INFO_FILENAME}"]
 
-    # JSON schreiben
+    # JSON schreiben (über Zwischendatei - bei einem Abbruch bleibt die
+    # alte dateien.json heil)
     json_str = json.dumps(result, ensure_ascii=False, indent=2)
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        f.write(json_str)
+    write_text_atomic(OUTPUT_FILE, json_str, encoding="utf-8")
 
     print(f"\n-- Ergebnis ------------------------------------------")
     print(f"[OK] {len(all_ids)} Szenen gefunden")
@@ -1107,20 +1324,23 @@ def main():
     #    keinem Abschnitt zugeordnet werden konnten (siehe extract_scene_id) --
     report_unassigned(unassigned_audio, unassigned_noten, unassigned_txt)
 
-    # -- Aufräumen: Dateien im Zielordner, die im Quellordner nicht mehr
-    #    existieren (z.B. weil im Quellordner umbenannt/gelöscht wurde) --
+    # -- Aufräumen: ALLE Dateien im Zielordner, die bei diesem Lauf nicht
+    #    aus dem Quellordner kamen (Stimme weggefallen, umbenannt, ...) --
     print(f"\n-- Aufräumen -------------------------------------------")
-    audio_orphans = find_orphans(AUDIO_OUT_DIR, audio_source_files, '.mp3')
-    noten_orphans = find_orphans(NOTEN_OUT_DIR, noten_source_files, '.pdf')
-    txt_orphans = find_orphans(TXT_OUT_DIR, txt_source_files, '.txt')
+    checks = [
+        ("Audio (MP3)", AUDIO_OUT_DIR, audio_expected),
+        ("Noten (PDF)", NOTEN_OUT_DIR, noten_expected),
+        ("TXT", TXT_OUT_DIR, txt_expected),
+    ]
+    orphan_lists = [(label, out_dir, find_orphans(out_dir, expected or set()), expected is None)
+                    for label, out_dir, expected in checks]
 
-    if not audio_orphans and not noten_orphans and not txt_orphans:
+    if not any(orphans for _, _, orphans, _ in orphan_lists):
         print("  [OK] Keine verwaisten Dateien gefunden - alles im Zielordner")
         print("    hat noch eine Entsprechung im Quellordner.")
     else:
-        handle_orphans("Audio (MP3)", AUDIO_OUT_DIR, audio_orphans)
-        handle_orphans("Noten (PDF)", NOTEN_OUT_DIR, noten_orphans)
-        handle_orphans("TXT", TXT_OUT_DIR, txt_orphans)
+        for label, out_dir, orphans, source_missing in orphan_lists:
+            handle_orphans(label, out_dir, orphans, source_missing)
 
     git_status = "disabled"
     if GIT_AUTO_COMMIT_PUSH:
@@ -1136,14 +1356,20 @@ def main():
         problems.append("git ist nicht installiert / nicht im PATH")
     elif git_status == "not_a_repo":
         problems.append(f"'{DEST_DIR}' ist kein Git-Repository")
+    elif git_status == "no_branch":
+        problems.append("aktueller Git-Branch konnte nicht ermittelt werden (kein Push)")
     elif git_status == "add_failed":
         problems.append("'git add' ist fehlgeschlagen")
     elif git_status == "commit_failed":
         problems.append("'git commit' ist fehlgeschlagen")
+    elif git_status == "pull_failed":
+        problems.append("'git pull --no-rebase' ist fehlgeschlagen (kein Push durchgeführt)")
     elif git_status == "push_failed":
         problems.append("'git push' ist fehlgeschlagen (lokal aber committet)")
-    # "disabled", "skipped_by_user", "no_changes" und "pushed" sind alle
-    # in Ordnung - kein Problem, sondern erwartetes/gewolltes Verhalten.
+    elif git_status == "csv_verify_failed":
+        problems.append("besetzung.csv fehlt im gepushten Commit oder stimmt nicht ueberein")
+    # "disabled", "skipped_by_user" und "pushed" sind in Ordnung - kein
+    # Problem, sondern erwartetes/gewolltes Verhalten.
 
     print("\n" + "=" * 55)
     if problems:
@@ -1158,14 +1384,11 @@ def main():
 
     unassigned_count = len(unassigned_audio) + len(unassigned_noten) + len(unassigned_txt)
     if unassigned_count:
-        print(f"  [Info] Hinweis: {unassigned_count} Datei(en) ohne erkennbaren")
+        print(f"  [Info] Hinweis: {unassigned_count} Datei(en) ohne gültigen")
         print("    Abschnitt (siehe 'Nicht zugeordnete Dateien' weiter oben).")
 
     # Konsole bleibt offen, bis eine Taste gedrückt wird (auch bei Doppelklick)
-    try:
-        input("\n[Enter] zum Beenden...")
-    except EOFError:
-        pass
+    _wait_and_exit()
 
 
 if __name__ == "__main__":
@@ -1183,7 +1406,4 @@ if __name__ == "__main__":
         traceback.print_exc()
         print("\n  Bitte diese Meldung an Flo weitergeben, dann kann der")
         print("  Fehler behoben werden.")
-        try:
-            input("\n[Enter] zum Beenden...")
-        except EOFError:
-            pass
+        _wait_and_exit()

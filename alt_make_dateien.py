@@ -50,10 +50,9 @@ unterschiedlichen "Partien aus ..."-Ordnern zufällig denselben Dateinamen
 haben, überschreibt die zuletzt kopierte Datei die vorherige in audio/
 (mit einer kurzen Meldung in der Konsole).
 
-Die Datei "besetzung.xlsx" liegt ausschließlich im Git-Repo (DEST_DIR,
-"12 GitHub/thadden27"). Aus ihr wird dort die "besetzung.csv" erzeugt
-bzw. bei Änderungen aktualisiert. Der Musik-Quellordner wird für die
-Besetzungsdateien NICHT mehr durchsucht. Die Besetzung kann
+Existiert eine "besetzung.xlsx" (gleiche Orte wie besetzung.csv, siehe
+BESETZUNG_XLSX_CANDIDATES), wird daraus automatisch die gleichnamige
+besetzung.csv erzeugt/aktualisiert (nur wenn nötig) - die Besetzung kann
 also ganz normal in Excel gepflegt werden. Dafür wird das Python-Paket
 "openpyxl" gebraucht; fehlt es, bietet das Script an, es automatisch zu
 installieren (fragt vorher in der Konsole nach Bestätigung). Bei Nein
@@ -61,7 +60,7 @@ oder wenn die Installation fehlschlägt, macht das Script mit einer
 eventuell vorhandenen besetzung.csv normal weiter.
 
 Außerdem prüft das Script anhand von "besetzung.csv" (Liste der
-gültigen Abschnitte - wird ausschließlich in DEST_DIR gesucht), ob es im
+gültigen Abschnitte - wird in DEST_DIR und SOURCE_DIR gesucht), ob es im
 Quellordner MP3s oder PDFs gibt, die KEINEM gültigen Abschnitt zugeordnet
 werden können (weil kein erkennbares Zahlen-Präfix wie "1.1 ..." im
 Ordner-/Dateinamen steht, ODER weil die erkannte Nummer gar nicht in
@@ -108,11 +107,12 @@ ANPASSEN:
   - GIT_AUTO_COMMIT_PUSH: auf False setzen, um den Commit/Push-Teil
     komplett zu deaktivieren (dann wird nur kopiert + dateien.json
     geschrieben, wie bisher)
-  - BESETZUNG_CSV_CANDIDATES / BESETZUNG_XLSX_CANDIDATES: Die Dateien
-     "besetzung.xlsx" und "besetzung.csv" liegen ausschließlich in DEST_DIR
-     (12 GitHub/thadden27), NICHT im Musik-Quellordner. Excel wird bei
-     Bedarf automatisch in die CSV umgewandelt (braucht "openpyxl" - wird
-     bei Bedarf mit Rückfrage automatisch installiert)
+  - BESETZUNG_CSV_CANDIDATES: Pfade, an denen nach "besetzung.csv"
+    gesucht wird (der erste gefundene Treffer gewinnt). Eigenen Pfad bei
+    Bedarf vorne in die Liste einfügen.
+  - BESETZUNG_XLSX_CANDIDATES: dasselbe für "besetzung.xlsx" - wird
+    gefunden, automatisch in die gleichnamige .csv umgewandelt (braucht
+    "openpyxl" - wird bei Bedarf mit Rückfrage automatisch installiert)
 """
 
 import os
@@ -257,11 +257,26 @@ OUTPUT_FILE = os.path.join(DEST_DIR, "dateien.json")
 # soll (inkl. Abfrage der Commit-Nachricht). False = nur kopieren, kein Git.
 GIT_AUTO_COMMIT_PUSH = True
 
-# Die Besetzungsdateien liegen AUSSCHLIESSLICH in DEST_DIR, also im lokalen
-# Git-Repo "12 GitHub/thadden27". Keine Suche mehr im Musik-Quellordner.
-# Die Excel-Datei ist die Quelle; die CSV wird daneben erzeugt/aktualisiert.
-BESETZUNG_CSV_CANDIDATES = [os.path.join(DEST_DIR, "besetzung.csv")]
-BESETZUNG_XLSX_CANDIDATES = [os.path.join(DEST_DIR, "besetzung.xlsx")]
+# Kandidaten-Pfade für "besetzung.csv" (Liste der gültigen Abschnitte).
+# Das Script probiert diese der Reihe nach durch und nimmt die erste
+# Datei, die existiert. Wird keine gefunden, gilt jede per Zahlen-Präfix
+# erkannte ID automatisch als gültig (altes Verhalten ohne CSV-Abgleich).
+BESETZUNG_CSV_CANDIDATES = [
+    os.path.join(DEST_DIR, "besetzung.csv"),
+    os.path.join(SOURCE_DIR, "besetzung.csv"),
+]
+
+# Kandidaten-Pfade für "besetzung.xlsx". Existiert eine davon, wird daraus
+# automatisch die gleichnamige .csv im selben Ordner erzeugt/aktualisiert
+# (nur wenn die .csv fehlt oder älter ist als die .xlsx) - die Besetzung
+# kann also ganz normal in Excel gepflegt werden, ohne von Hand als CSV
+# exportieren zu müssen. Braucht das Paket "openpyxl" (pip install
+# openpyxl); fehlt es, wird das klar gemeldet und stattdessen direkt mit
+# einer vorhandenen besetzung.csv weitergemacht (falls es eine gibt).
+BESETZUNG_XLSX_CANDIDATES = [
+    os.path.join(DEST_DIR, "besetzung.xlsx"),
+    os.path.join(SOURCE_DIR, "besetzung.xlsx"),
+]
 # ----------------------------------------------------------------------
 
 # Zählt Probleme während des Laufs (Kopier-/Löschfehler), damit am Ende
@@ -387,23 +402,22 @@ def convert_xlsx_to_csv(xlsx_path, csv_path):
 
 
 def sync_besetzung_csv_from_xlsx():
-    """Erzeugt IMMER besetzung.csv aus der Excel-Datei im Git-Repo.
-
-    Dabei wird nicht auf Dateizeitstempel vertraut (OneDrive und Excel
-    koennen Zeitstempel unterschiedlich setzen). Fehlt die XLSX oder
-    schlaegt die Konvertierung fehl, ist dies ein Fehler und das gesamte
-    Skript darf keine alte CSV stillschweigend weiterverwenden.
     """
-    xlsx_path = os.path.join(DEST_DIR, "besetzung.xlsx")
-    csv_path = os.path.join(DEST_DIR, "besetzung.csv")
-    if not os.path.isfile(xlsx_path):
-        print(f"  [FEHLER] Excel-Quelldatei fehlt: {xlsx_path}")
-        print("     Bitte besetzung.xlsx in den GitHub-Ordner thadden27 legen.")
-        print("     Die alte besetzung.csv wird NICHT ersatzweise verwendet.")
-        return False
-
-    print("  [Info] 'besetzung.xlsx' gefunden - CSV wird immer frisch erzeugt.")
-    return convert_xlsx_to_csv(xlsx_path, csv_path)
+    Prüft BESETZUNG_XLSX_CANDIDATES der Reihe nach; existiert eine
+    besetzung.xlsx, wird daraus die gleichnamige besetzung.csv im selben
+    Ordner erzeugt/aktualisiert - aber nur, wenn diese fehlt oder älter
+    als die xlsx ist (spart unnötige Konvertierungen bei jedem Lauf).
+    """
+    for xlsx_path in BESETZUNG_XLSX_CANDIDATES:
+        if not os.path.isfile(xlsx_path):
+            continue
+        csv_path = os.path.splitext(xlsx_path)[0] + ".csv"
+        stale = not os.path.isfile(csv_path) or \
+            os.path.getmtime(xlsx_path) > os.path.getmtime(csv_path)
+        if stale:
+            print(f"  [Info]  '{os.path.basename(xlsx_path)}' gefunden - erzeuge/aktualisiere CSV ...")
+            convert_xlsx_to_csv(xlsx_path, csv_path)
+        break  # nur die erste gefundene xlsx verwenden (gleiche Prioritaet wie bei den CSV-Kandidaten)
 
 
 def load_valid_scene_ids():
@@ -423,8 +437,7 @@ def load_valid_scene_ids():
                   Zahlen-Präfix erkannte ID gilt automatisch als gültig).
       csv_path  = Pfad der benutzten CSV, oder None.
     """
-    if not sync_besetzung_csv_from_xlsx():
-        return None, None
+    sync_besetzung_csv_from_xlsx()
 
     csv_path = next((c for c in BESETZUNG_CSV_CANDIDATES if os.path.isfile(c)), None)
 
@@ -882,52 +895,11 @@ def run_git(args, cwd, timeout=None):
     return proc.returncode == 0, output
 
 
-def ignore_excel_lockfiles_in_git():
-    """Excel-Sperrdateien (~$...) ignorieren und bereits getrackte entfernen.
-
-    'git rm --cached' entfernt die Dateien NUR aus Git, nicht vom Datenträger.
-    Dadurch werden temporäre OneDrive-/Excel-Dateien nicht veröffentlicht.
-    """
-    ignore_path = os.path.join(DEST_DIR, ".gitignore")
-    try:
-        if os.path.isfile(ignore_path):
-            with open(ignore_path, "r", encoding="utf-8-sig") as f:
-                existing = f.read()
-        else:
-            existing = ""
-        rule = "~$*.xls*"
-        if rule not in existing.splitlines():
-            with open(ignore_path, "a", encoding="utf-8", newline="\n") as f:
-                if existing and not existing.endswith(("\n", "\r")):
-                    f.write("\n")
-                f.write("\n# Temporäre Excel-Sperrdateien nicht hochladen\n" + rule + "\n")
-            print("  [Git] Excel-Sperrdateien in .gitignore eingetragen.")
-    except OSError as e:
-        print(f"  [FEHLER] Konnte .gitignore nicht aktualisieren: {e}")
-        return False
-
-    ok, out = run_git(["ls-files", "-z"], DEST_DIR)
-    if not ok:
-        print(f"  [FEHLER] Konnte Git-Dateiliste nicht lesen: {out}")
-        return False
-    for relative_path in out.split("\0"):
-        name = os.path.basename(relative_path)
-        if name.startswith("~$") and name.lower().endswith((".xlsx", ".xlsm", ".xls")):
-            ok, result = run_git(["rm", "-f", "--cached", "--", relative_path], DEST_DIR)
-            if not ok:
-                print(f"  [FEHLER] Konnte Excel-Sperrdatei nicht aus Git entfernen: {result}")
-                return False
-            print(f"  [Git] Entferne temporäre Datei aus Git (lokal bleibt sie): {relative_path}")
-    return True
-
-
 def git_commit_and_push():
     """
-    Fragt in der Konsole nach dem Upload und führt Git aus:
-    temporäre Excel-Sperrdateien ignorieren -> git add -> ggf. commit ->
-    git pull --no-rebase origin main -> git push origin main.
-    So klappt der Push auch, wenn seit dem letzten Lauf auf GitHub etwas
-    geändert wurde oder ein vorheriger Push fehlgeschlagen ist.
+    Fragt in der Konsole nach, ob die kopierten Dateien in DEST_DIR
+    committet und gepusht werden sollen, und macht das dann
+    (git add -> git commit -m "..." -> git push).
 
     Gibt einen kurzen Status-String zurück, den main() für die
     Abschluss-Zusammenfassung auswertet:
@@ -937,8 +909,7 @@ def git_commit_and_push():
       "add_failed"      - 'git add' fehlgeschlagen
       "no_changes"      - nichts zu committen
       "commit_failed"   - 'git commit' fehlgeschlagen
-      "pull_failed"     - Remote-Änderungen konnten nicht integriert werden
-      "push_failed"     - 'git push' fehlgeschlagen
+      "push_failed"     - Commit ok, aber 'git push' fehlgeschlagen
       "pushed"          - alles erfolgreich committet UND gepusht
     """
     print("\n-- Git -------------------------------------------------")
@@ -961,97 +932,50 @@ def git_commit_and_push():
         print("  Übersprungen - nichts committet/gepusht.")
         return "skipped_by_user"
 
-    # Vor dem Staging temporäre Excel-Dateien aus Git ausschließen.
-    # Sie sind technisch nur Sperrdateien von Excel und gehören nicht ins Repo.
-    if not ignore_excel_lockfiles_in_git():
-        return "add_failed"
-
-    # CSV explizit aufnehmen, auch falls sie durch globale Git-Regeln
-    # oder eine lokale .git/info/exclude ignoriert werden sollte.
-    csv_path = os.path.join(DEST_DIR, "besetzung.csv")
-    if not os.path.isfile(csv_path):
-        print("  [FEHLER] besetzung.csv fehlt; Git-Upload wird abgebrochen.")
-        return "add_failed"
-    ok, out = run_git(["add", "-f", "--", "besetzung.csv"], DEST_DIR)
-    if not ok:
-        print(f"  [FEHLER] Konnte besetzung.csv nicht zum Commit vormerken: {out}")
-        return "add_failed"
-
-    # Alle übrigen Änderungen erfassen.
+    # "-A ." statt einzelner Pfade: dadurch werden WIRKLICH ALLE Änderungen
+    # im Git-Ordner erfasst (audio/, noten/, dateien.json, besetzung.csv,
+    # besetzung.xlsx, neue/gelöschte Dateien, etc.) - nicht nur eine feste
+    # Auswahl von Pfaden, bei der leicht mal eine Datei vergessen wird.
     ok, out = run_git(["add", "-A", "."], DEST_DIR)
     if not ok:
         print(f"  [FEHLER] 'git add' fehlgeschlagen:\n{out}")
         return "add_failed"
 
-    # Anzeige, ob die neu erzeugte CSV andere Inhalte als der letzte
-    # Git-Commit hat. Nur tatsächlich geänderte Inhalte erzeugen eine
-    # neue Git-Dateiversion (erneutes Speichern alleine reicht nicht).
-    ok, out = run_git(["diff", "--cached", "--name-only", "--", "besetzung.csv"], DEST_DIR)
-    if not ok:
-        print(f"  [FEHLER] CSV-Aenderungspruefung fehlgeschlagen: {out}")
-        return "add_failed"
-    if out.strip():
-        print("  [Git/CSV] besetzung.csv wurde geaendert und wird mitcommittet.")
-    else:
-        print("  [Git/CSV] Inhalt von besetzung.csv ist bereits identisch mit dem Git-Stand.")
-        print("            Sie wird deshalb nicht erneut als Dateiaenderung angezeigt.")
+    ok, out = run_git(["status", "--porcelain"], DEST_DIR)
+    if ok and not out.strip():
+        print("  [Info] Keine Änderungen gegenüber dem letzten Commit - nichts zu tun.")
+        return "no_changes"
 
-    ok, out = run_git(["diff", "--cached", "--quiet"], DEST_DIR)
-    if ok:
-        print("  [Info] Keine neuen Änderungen zu committen.")
-    else:
-        try:
-            message = input("  Commit-Nachricht (leer = Standardtext): ").strip()
-        except EOFError:
-            message = ""
-        if not message:
-            message = "Update dateien.json, audio und noten"
+    try:
+        message = input("  Commit-Nachricht (leer = Standardtext): ").strip()
+    except EOFError:
+        message = ""
+    if not message:
+        message = "Update dateien.json, audio und noten"
 
-        ok, out = run_git(["commit", "-m", message], DEST_DIR)
-        if out:
-            print(f"  {out}")
-        if not ok:
-            print("  [FEHLER] 'git commit' fehlgeschlagen - Push übersprungen.")
-            return "commit_failed"
-
-    # Auch wenn es nichts Neues zu committen gibt: Ein vorheriger Push
-    # könnte fehlgeschlagen sein, daher IMMER Remote-Abgleich und Push.
-    print("  -> GitHub-Änderungen abgleichen (git pull --no-rebase origin main) ...")
-    ok, out = run_git(["pull", "--no-rebase", "origin", "main"], DEST_DIR, timeout=120)
+    ok, out = run_git(["commit", "-m", message], DEST_DIR)
     if out:
         print(f"  {out}")
     if not ok:
-        print("  [FEHLER] GitHub-Änderungen konnten nicht automatisch integriert werden.")
-        print("     Kein Push durchgeführt. Die lokalen Commits bleiben erhalten.")
-        print("     Falls ein Merge-Konflikt angezeigt wird, bitte erst klären;")
-        print("     zur Wiederherstellung des Zustands davor: git merge --abort")
-        return "pull_failed"
+        print("  [FEHLER] 'git commit' fehlgeschlagen - Push übersprungen.")
+        return "commit_failed"
 
-    print("  -> Push (git push origin main) ...")
-    ok, out = run_git(["push", "origin", "main"], DEST_DIR, timeout=120)
+    print("  -> Push...")
+    ok, out = run_git(["push"], DEST_DIR, timeout=30)
     if out:
         print(f"  {out}")
     if ok:
         print("  [OK] Erfolgreich gepusht.")
-        # Der Push beinhaltet den aktuellen HEAD. Daher pruefen wir,
-        # ob genau diese CSV im gepushten Commit gespeichert ist.
-        exists, details = run_git(["cat-file", "-e", "HEAD:besetzung.csv"], DEST_DIR)
-        if not exists:
-            print("  [FEHLER] Im gepushten Commit fehlt besetzung.csv!", details)
-            return "csv_verify_failed"
-        identical, details = run_git(["diff", "--quiet", "HEAD", "--", "besetzung.csv"], DEST_DIR)
-        if not identical:
-            print("  [FEHLER] Lokale besetzung.csv unterscheidet sich vom gepushten Commit!")
-            print("     Bitte den Git-Status pruefen:", details)
-            return "csv_verify_failed"
-        print("  [Git/CSV] Geprueft: besetzung.csv ist im gepushten Commit enthalten")
-        print("            und stimmt mit der lokalen CSV ueberein.")
         return "pushed"
-
-    print("  [FEHLER] 'git push' fehlgeschlagen - Änderungen sind lokal")
-    print("     committet, aber NICHT auf GitHub angekommen!")
-    print("     Bitte Fehlermeldung oben prüfen (z.B. Verbindung oder Rechte).")
-    return "push_failed"
+    else:
+        print("  [FEHLER] 'git push' fehlgeschlagen - die Änderungen sind lokal")
+        print("     committet, aber NICHT auf GitHub angekommen!")
+        print("     Fehlermeldung oben prüfen (z.B. kein Internet, kein")
+        print("     Remote/Upstream eingerichtet, Merge-Konflikt, fehlende")
+        print("     Berechtigung). Danach reicht später ein einfaches")
+        print("     'git push' im Git-Ordner, ohne das Script nochmal")
+        print("     laufen zu lassen.")
+        return "push_failed"
 
 
 def main():
@@ -1119,14 +1043,6 @@ def main():
 
     print("-- Besetzung (gültige Abschnitte) ----------------------")
     valid_ids, besetzung_csv_path = load_valid_scene_ids()
-    if valid_ids is None:
-        print("\n[FEHLER] Abbruch: besetzung.xlsx konnte nicht erfolgreich in CSV umgewandelt werden.")
-        print("         Es werden keine Dateien kopiert oder zu GitHub gepusht.")
-        try:
-            input("\n[Enter] zum Beenden...")
-        except EOFError:
-            pass
-        return
 
     print("\n-- Audio (MP3) -> wird nach audio/ kopiert -------------")
     audio, audio_source_files, unassigned_audio = collect_audio(valid_ids)
@@ -1224,12 +1140,8 @@ def main():
         problems.append("'git add' ist fehlgeschlagen")
     elif git_status == "commit_failed":
         problems.append("'git commit' ist fehlgeschlagen")
-    elif git_status == "pull_failed":
-        problems.append("'git pull --no-rebase' ist fehlgeschlagen (kein Push durchgeführt)")
     elif git_status == "push_failed":
         problems.append("'git push' ist fehlgeschlagen (lokal aber committet)")
-    elif git_status == "csv_verify_failed":
-        problems.append("besetzung.csv fehlt im gepushten Commit oder stimmt nicht ueberein")
     # "disabled", "skipped_by_user", "no_changes" und "pushed" sind alle
     # in Ordnung - kein Problem, sondern erwartetes/gewolltes Verhalten.
 
